@@ -1,0 +1,607 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import { db } from "@/src/firebase/config";
+
+export default function MyProfilePage() {
+  const router = useRouter();
+  const [member, setMember] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    loadMyProfile();
+  }, []);
+
+  const loadMyProfile = async () =>  {
+  try {
+    const memberString = localStorage.getItem("member");
+
+    if (!memberString) {
+      setLoading(false);
+      return;
+    }
+
+    const loggedInMember = JSON.parse(memberString);
+
+    const memberRef = doc(db, "members", loggedInMember.id);
+
+    const memberSnap = await getDoc(memberRef);
+
+    if (!memberSnap.exists()) {
+      setLoading(false);
+      return;
+    }
+
+    setMember({
+      id: memberSnap.id,
+      ...memberSnap.data(),
+    });
+
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const saveProfile = async () => {
+    try {
+      if (!member?.id) return;
+
+      await updateDoc(
+        doc(db, "members", member.id),
+        {
+          email: member.email || "",
+          address: member.address || "",
+
+          profession:
+            member.profession || "",
+
+          companyName:
+            member.companyName || "",
+
+          jobTitle:
+            member.jobTitle || "",
+
+          businessDescription:
+            member.businessDescription || "",
+
+          hobbies:
+            member.hobbies || "",
+
+          specialSkills:
+            member.specialSkills || "",
+            childrenNames:
+            member.childrenNames || "",
+        }
+      );
+
+      setIsEditing(false);
+
+      alert(
+        "Profile updated successfully"
+      );
+    } catch (error) {
+      console.error(error);
+      alert("Error saving profile");
+    }
+  };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#E1D4C2] flex items-center justify-center">
+        <p className="text-[#6E473B]">
+          Loading Profile...
+        </p>
+      </main>
+    );
+  }
+
+  if (!member) {
+    return (
+      <main className="min-h-screen bg-[#E1D4C2] flex items-center justify-center">
+        <p className="text-red-500">
+          Member not found
+        </p>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-[#E1D4C2]">
+      <div className="border-b border-[#BEB5A9] bg-white shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-5 flex items-center justify-between">
+
+  <button
+    onClick={() => router.push("/")}
+    className="text-[#6E473B] font-semibold hover:underline"
+  >
+    ← Back
+  </button>
+
+  <h1 className="text-2xl md:text-3xl font-bold text-[#291C0E]">
+    My Profile
+  </h1>
+
+  <button
+    onClick={() => setIsEditing(!isEditing)}
+    className="bg-[#6E473B] text-white px-4 py-2 rounded-xl text-sm font-semibold"
+  >
+    {isEditing ? "Cancel" : "Edit Profile"}
+  </button>
+
+</div>
+      </div>
+
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-white rounded-3xl shadow-md p-8">
+
+          {/* Basic Info */}
+
+         {/* Basic Information */}
+
+<h2 className="text-2xl font-bold text-[#291C0E] mb-6">
+  Basic Information
+</h2>
+
+<div className="space-y-6">
+
+  {/* Name */}
+
+  <div>
+    <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+      🔒 Name
+    </label>
+
+    <input
+      type="text"
+      value={member.name || ""}
+      readOnly
+      className="w-full rounded-xl border border-gray-300 bg-gray-100 p-3"
+    />
+  </div>
+
+  {/* Member Code */}
+
+  <div>
+    <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+      🔒 Member Code
+    </label>
+
+    <input
+      type="text"
+      value={member.memberCode || ""}
+      readOnly
+      className="w-full rounded-xl border border-gray-300 bg-gray-100 p-3"
+    />
+  </div>
+
+  {/* Mobile */}
+
+  <div>
+    <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+      🔒 Mobile Number
+    </label>
+
+    <input
+      type="text"
+      value={member.mobile || ""}
+      readOnly
+      className="w-full rounded-xl border border-gray-300 bg-gray-100 p-3"
+    />
+  </div>
+
+  {/* Date of Birth */}
+
+  <div>
+    <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+      🔒 Date of Birth
+    </label>
+
+    <input
+      type="text"
+      value={member.dob || ""}
+      readOnly
+      className="w-full rounded-xl border border-gray-300 bg-gray-100 p-3"
+    />
+  </div>
+
+</div>
+
+          {/* Email */}
+
+          <div className="mt-8">
+            <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+              Email Address
+            </label>
+
+            <input
+              type="email"
+              value={member.email || ""}
+              onChange={(e) =>
+                setMember({
+                  ...member,
+                  email:
+                    e.target.value,
+                })
+              }
+              readOnly={!isEditing}
+              className={`w-full rounded-xl border border-[#BEB5A9] p-3 ${
+                isEditing
+                  ? "bg-white"
+                  : "bg-gray-50"
+              }`}
+            />
+          </div>
+
+          {/* Address */}
+
+          <div className="mt-6">
+            <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+              Home Address
+            </label>
+
+            <textarea
+              rows={3}
+              value={
+                member.address || ""
+              }
+              onChange={(e) =>
+                setMember({
+                  ...member,
+                  address:
+                    e.target.value,
+                })
+              }
+              readOnly={!isEditing}
+              className={`w-full rounded-xl border border-[#BEB5A9] p-3 ${
+                isEditing
+                  ? "bg-white"
+                  : "bg-gray-50"
+              }`}
+            />
+          </div>
+
+          {/* Professional */}
+
+          <h3 className="mt-10 mb-4 text-xl font-bold text-[#291C0E]">
+            Professional Information
+          </h3>
+
+          <div className="space-y-6">
+
+            <div>
+              <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+                Profession
+              </label>
+
+              <input
+                value={
+                  member.profession ||
+                  ""
+                }
+                onChange={(e) =>
+                  setMember({
+                    ...member,
+                    profession:
+                      e.target.value,
+                  })
+                }
+                readOnly={
+                  !isEditing
+                }
+                className={`w-full rounded-xl border border-[#BEB5A9] p-3 ${
+                  isEditing
+                    ? "bg-white"
+                    : "bg-gray-50"
+                }`}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+                Company Name
+              </label>
+
+              <input
+                value={
+                  member.companyName ||
+                  ""
+                }
+                onChange={(e) =>
+                  setMember({
+                    ...member,
+                    companyName:
+                      e.target.value,
+                  })
+                }
+                readOnly={
+                  !isEditing
+                }
+                className={`w-full rounded-xl border border-[#BEB5A9] p-3 ${
+                  isEditing
+                    ? "bg-white"
+                    : "bg-gray-50"
+                }`}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+                Job Title
+              </label>
+
+              <input
+                value={
+                  member.jobTitle ||
+                  ""
+                }
+                onChange={(e) =>
+                  setMember({
+                    ...member,
+                    jobTitle:
+                      e.target.value,
+                  })
+                }
+                readOnly={
+                  !isEditing
+                }
+                className={`w-full rounded-xl border border-[#BEB5A9] p-3 ${
+                  isEditing
+                    ? "bg-white"
+                    : "bg-gray-50"
+                }`}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+                Business Description
+              </label>
+
+              <textarea
+                rows={4}
+                value={
+                  member.businessDescription ||
+                  ""
+                }
+                onChange={(e) =>
+                  setMember({
+                    ...member,
+                    businessDescription:
+                      e.target.value,
+                  })
+                }
+                readOnly={
+                  !isEditing
+                }
+                className={`w-full rounded-xl border border-[#BEB5A9] p-3 ${
+                  isEditing
+                    ? "bg-white"
+                    : "bg-gray-50"
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Skills */}
+
+          <h3 className="mt-10 mb-4 text-xl font-bold text-[#291C0E]">
+            Interests & Skills
+          </h3>
+
+          <div className="space-y-6">
+
+            <div>
+              <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+                Hobbies
+              </label>
+
+              <textarea
+                rows={3}
+                value={
+                  member.hobbies ||
+                  ""
+                }
+                onChange={(e) =>
+                  setMember({
+                    ...member,
+                    hobbies:
+                      e.target.value,
+                  })
+                }
+                readOnly={
+                  !isEditing
+                }
+                className={`w-full rounded-xl border border-[#BEB5A9] p-3 ${
+                  isEditing
+                    ? "bg-white"
+                    : "bg-gray-50"
+                }`}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+                Special Skills
+              </label>
+
+              <textarea
+                rows={3}
+                value={
+                  member.specialSkills ||
+                  ""
+                }
+                onChange={(e) =>
+                  setMember({
+                    ...member,
+                    specialSkills:
+                      e.target.value,
+                  })
+                }
+                readOnly={
+                  !isEditing
+                }
+                className={`w-full rounded-xl border border-[#BEB5A9] p-3 ${
+                  isEditing
+                    ? "bg-white"
+                    : "bg-gray-50"
+                }`}
+              />
+            </div>
+          </div>
+
+{/* Family Information */}
+
+<h3 className="mt-10 mb-4 text-xl font-bold text-[#291C0E]">
+  Family Information
+</h3>
+
+<div className="space-y-6">
+
+  <div>
+    <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+      Spouse Name
+    </label>
+
+    <input
+      type="text"
+      value={member.spouseName || ""}
+      readOnly
+      className="w-full rounded-xl border border-[#BEB5A9] bg-gray-50 p-3"
+    />
+  </div>
+
+  
+
+  <div>
+    <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+      Wedding Anniversary
+    </label>
+
+    <input
+      type="text"
+      value={member.anniversary || ""}
+      readOnly
+      className="w-full rounded-xl border border-[#BEB5A9] bg-gray-50 p-3"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+      Children Names
+    </label>
+
+    <textarea
+      rows={3}
+      value={member.childrenNames || ""}
+      onChange={(e) =>
+        setMember({
+          ...member,
+          childrenNames: e.target.value,
+        })
+      }
+      readOnly={!isEditing}
+      className={`w-full rounded-xl border border-[#BEB5A9] p-3 ${
+        isEditing ? "bg-white" : "bg-gray-50"
+      }`}
+    />
+  </div>
+  
+{/* Lions Information */}
+
+<h3 className="mt-10 mb-4 text-xl font-bold text-[#291C0E]">
+  Lions Information
+</h3>
+
+<div className="space-y-6">
+
+  <div>
+    <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+      Member Code
+    </label>
+
+    <input
+      type="text"
+      value={member.memberCode || ""}
+      readOnly
+      className="w-full rounded-xl border border-[#BEB5A9] bg-gray-50 p-3"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+      Year Joined Lions
+    </label>
+
+    <input
+      type="text"
+      value={member.yearJoinedLions || ""}
+      readOnly
+      className="w-full rounded-xl border border-[#BEB5A9] bg-gray-50 p-3"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+      Current Lions Role
+    </label>
+
+    <input
+      type="text"
+      value={member.currentLionsRole || ""}
+      readOnly
+      className="w-full rounded-xl border border-[#BEB5A9] bg-gray-50 p-3"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+      Past Positions Held
+    </label>
+
+    <textarea
+      rows={3}
+      value={member.pastPositions || ""}
+      readOnly
+      className="w-full rounded-xl border border-[#BEB5A9] bg-gray-50 p-3"
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+      Awards & Achievements
+    </label>
+
+    <textarea
+      rows={3}
+      value={member.awardsAchievements || ""}
+      readOnly
+      className="w-full rounded-xl border border-[#BEB5A9] bg-gray-50 p-3"
+    />
+  </div>
+
+</div>
+
+</div>
+
+          {isEditing && (
+            <button
+              onClick={saveProfile}
+              className="mt-8 bg-[#6E473B] text-white px-6 py-3 rounded-xl font-semibold"
+            >
+              Save Changes
+            </button>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}

@@ -1,0 +1,229 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { collection, getDocs, doc, updateDoc,} from "firebase/firestore";
+import { db } from "@/src/firebase/config";
+
+export default function MyProfilePage() {
+    const [member, setMember] = useState<any>(null);
+const [loading, setLoading] = useState(true);
+const [isEditing, setIsEditing] = useState(false);
+useEffect(() => {
+  loadMyProfile();
+}, []);
+
+const loadMyProfile = async () => {
+  try {
+    const memberMobile = localStorage.getItem("memberMobile");
+
+    if (!memberMobile) {
+      setLoading(false);
+      return;
+    }
+
+    const snapshot = await getDocs(collection(db, "members"));
+
+    const foundMember = snapshot.docs.find(
+      (doc) => doc.data().mobile === memberMobile
+    );
+
+    if (foundMember) {
+      setMember({
+        id: foundMember.id,
+        ...foundMember.data(),
+      });
+    }
+  } catch (error) {
+    console.error("Error loading profile:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const saveProfile = async () => {
+  try {
+    if (!member?.id) return;
+
+    await updateDoc(
+  doc(db, "members", member.id),
+  {
+    email: member.email || "",
+    address: member.address || "",
+
+    profession: member.profession || "",
+    companyName: member.companyName || "",
+    jobTitle: member.jobTitle || "",
+
+    businessDescription:
+      member.businessDescription || "",
+
+    hobbies: member.hobbies || "",
+
+    specialSkills:
+      member.specialSkills || "",
+  }
+);
+
+    setIsEditing(false);
+
+    alert("Profile updated successfully");
+  } catch (error) {
+    console.error(error);
+    alert("Error saving profile");
+  }
+};
+
+  return (
+    <main className="min-h-screen bg-[#E1D4C2]">
+
+      <div className="border-b border-[#BEB5A9] bg-white shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-5 flex justify-between items-center">
+
+          <h1 className="text-2xl md:text-3xl font-bold text-[#291C0E]">
+            My Profile
+          </h1>
+       <button
+     onClick={() => setIsEditing(!isEditing)}
+         className="bg-[#6E473B] text-white px-4 py-2 rounded-xl text-sm font-semibold"
+          >
+         {isEditing ? "Cancel" : "Edit Profile"}
+         </button>
+
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto p-6">
+
+        <div className="bg-white rounded-3xl shadow-md p-8">
+
+          {loading ? (
+  <p className="text-[#6E473B]">
+    Loading Profile...
+  </p>
+) : member ? (
+  <>
+    <h2 className="text-2xl font-bold text-[#291C0E]">
+      {member.name}
+    </h2>
+
+    <p className="mt-2 text-[#6E473B]">
+      {member.mobile}
+      
+    </p>
+
+   
+<div className="mt-6">
+  <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+    Email Address
+  </label>
+
+  <input
+  type="email"
+  value={member.email || ""}
+  onChange={(e) =>
+    setMember({
+      ...member,
+      email: e.target.value,
+    })
+  }
+  readOnly={!isEditing}
+  className={`w-full rounded-xl border border-[#BEB5A9] p-3 ${
+    isEditing ? "bg-white" : "bg-gray-50"
+  }`}
+/>
+</div>
+{isEditing && (
+ <button
+  onClick={saveProfile}
+  className="mt-6 bg-[#6E473B] text-white px-6 py-3 rounded-xl font-semibold"
+>
+  Save Changes
+</button>
+)}
+<div className="mt-6">
+  <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+    Home Address
+  </label>
+
+  
+
+<textarea
+  value={member.address || ""}
+  onChange={(e) =>
+    setMember({
+      ...member,
+      address: e.target.value,
+    })
+  }
+  readOnly={!isEditing}
+  rows={3}
+  className={`w-full rounded-xl border border-[#BEB5A9] p-3 ${
+    isEditing ? "bg-white" : "bg-gray-50"
+  }`}
+/>
+
+<h3 className="mt-10 mb-4 text-xl font-bold text-[#291C0E]">
+  Interests & Skills
+</h3>
+
+<div className="space-y-6">
+
+  <div>
+    <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+      Hobbies
+    </label>
+
+    <textarea
+      rows={3}
+      value={member.hobbies || ""}
+      onChange={(e) =>
+        setMember({
+          ...member,
+          hobbies: e.target.value,
+        })
+      }
+      readOnly={!isEditing}
+      className={`w-full rounded-xl border border-[#BEB5A9] p-3 ${
+        isEditing ? "bg-white" : "bg-gray-50"
+      }`}
+    />
+  </div>
+
+  <div>
+    <label className="block text-sm font-semibold text-[#291C0E] mb-2">
+      Special Skills
+    </label>
+
+    <textarea
+      rows={3}
+      value={member.specialSkills || ""}
+      onChange={(e) =>
+        setMember({
+          ...member,
+          specialSkills: e.target.value,
+        })
+      }
+      readOnly={!isEditing}
+      className={`w-full rounded-xl border border-[#BEB5A9] p-3 ${
+        isEditing ? "bg-white" : "bg-gray-50"
+      }`}
+    />
+  </div>
+
+</div>
+
+</div>
+  </>
+) : (
+  <p className="text-red-500">
+    Member not found
+  </p>
+)}
+
+        </div>
+
+      </div>
+
+    </main>
+  );
+}
