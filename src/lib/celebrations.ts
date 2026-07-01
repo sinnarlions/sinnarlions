@@ -1,4 +1,5 @@
-import { Member, Celebration } from "@/types/member";
+import { Member } from "@/src/types/members";
+import { Celebration } from "@/src/types/celebration";
 
 export function getTodayCelebrations(
   members: Member[]
