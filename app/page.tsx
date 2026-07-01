@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { db } from "../src/firebase/firestore";
+import { db } from "../src/firebase/config";
 import AuthGuard from "@/src/components/AuthGuard";
 import { useRouter } from "next/navigation";
 import {
