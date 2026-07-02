@@ -172,13 +172,12 @@ const toggleReaction = async (
   </h2>
 
   <textarea
-    value={wish}
-    onChange={(e) =>
-      setWish(e.target.value)
-    }
-    placeholder="Write your wishes here..."
-    className="w-full rounded-2xl border border-black/10 bg-[#F7F2F0] p-4 outline-none"
-  />
+  rows={5}
+  value={wish}
+  onChange={(e) => setWish(e.target.value)}
+  placeholder="Write your wishes here..."
+  className="min-h-[120px] w-full resize-none rounded-2xl border border-gray-300 bg-[#F7F2F0] p-4 text-base leading-6 outline-none transition focus:border-[#78B8B5] focus:ring-2 focus:ring-[#78B8B5]/20 break-words"
+/>
 
   
 
@@ -294,9 +293,9 @@ await loadWishes();
           className="rounded-2xl bg-[#F7F2F0] p-5 shadow"
         >
 
-          <p className="text-lg text-[#1F1F1F]">
-            {item.message}
-          </p>
+          <p className="whitespace-pre-wrap break-words text-lg text-[#1F1F1F]">
+  {item.message}
+</p>
 <div className="mt-3 flex gap-5 text-sm font-semibold">
 
   <button

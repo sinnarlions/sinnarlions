@@ -17,9 +17,9 @@ export default function LoginPage() {
   
 
   return (
-    <main className="min-h-screen bg-[#825232] flex items-center justify-center px-4">
+    <main className="min-h-screen bg-gradient-to-br from-[#6E4025] via-[#825232] to-[#A56A43] flex items-center justify-center px-4 py-8">
 
-      <div className="w-full max-w-md rounded-[32px] bg-[#FDF2E9] p-8 shadow-2xl">
+      <div className="w-full max-w-md rounded-3xl border border-[#E7D5C8] bg-white p-6 sm:p-8 shadow-2xl">
 
         <h1 className="text-3xl font-bold text-center text-[#622A1E]">
           Member Login
@@ -34,7 +34,7 @@ export default function LoginPage() {
           placeholder="Mobile Number"
           value={mobile}
           onChange={(e) => setMobile(e.target.value)}
-          className="mt-8 w-full rounded-xl border p-4 outline-none"
+          className="mt-8 w-full rounded-xl border border-gray-300 bg-white p-4 text-base outline-none transition focus:border-[#825232] focus:ring-2 focus:ring-[#825232]/20"
         />
 
         <input
@@ -42,7 +42,7 @@ export default function LoginPage() {
           placeholder="4 Digit PIN"
           value={pin}
           onChange={(e) => setPin(e.target.value)}
-          className="mt-4 w-full rounded-xl border p-4 outline-none"
+          className="mt-8 w-full rounded-xl border border-gray-300 bg-white p-4 text-base outline-none transition focus:border-[#825232] focus:ring-2 focus:ring-[#825232]/20"
         />
 
         <button
@@ -103,6 +103,8 @@ export default function LoginPage() {
     isPinChanged:
       member.isPinChanged,
   })
+  localStorage.setItem("memberName", member.name);
+   localStorage.setItem("memberMobile", member.mobile);
 );
 
     if (!member.isPinChanged) {
@@ -112,7 +114,7 @@ export default function LoginPage() {
 }
 
   }}
-  className="mt-6 w-full rounded-xl bg-[#825232] py-4 text-white font-bold"
+ className="mt-6 w-full rounded-xl bg-[#825232] py-4 text-lg font-semibold text-white transition hover:bg-[#6E4025] active:scale-[0.98]"
 >
   Login
 </button>
