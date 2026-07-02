@@ -103,10 +103,10 @@ export default function LoginPage() {
     isPinChanged:
       member.isPinChanged,
   })
-  localStorage.setItem("memberName", member.name);
-   localStorage.setItem("memberMobile", member.mobile);
+ 
 );
-
+ localStorage.setItem("memberName", member.name);
+   localStorage.setItem("memberMobile", member.mobile);
     if (!member.isPinChanged) {
   router.replace("/change-pin");
 } else {
