@@ -34,7 +34,7 @@ export default function LoginPage() {
           placeholder="Mobile Number"
           value={mobile}
           onChange={(e) => setMobile(e.target.value)}
-          className="mt-8 w-full rounded-xl border border-gray-300 bg-white p-4 text-base outline-none transition focus:border-[#825232] focus:ring-2 focus:ring-[#825232]/20"
+          className="mt-8 w-full rounded-xl border-2 border-gray-300 bg-white p-4 text-base text-black placeholder:text-gray-500 outline-none transition focus:border-[#825232] focus:ring-2 focus:ring-[#825232]/20"
         />
 
         <input
@@ -42,7 +42,7 @@ export default function LoginPage() {
           placeholder="4 Digit PIN"
           value={pin}
           onChange={(e) => setPin(e.target.value)}
-          className="mt-8 w-full rounded-xl border border-gray-300 bg-white p-4 text-base outline-none transition focus:border-[#825232] focus:ring-2 focus:ring-[#825232]/20"
+          className="mt-4 w-full rounded-xl border-2 border-gray-300 bg-white p-4 text-base text-black placeholder:text-gray-500 outline-none transition focus:border-[#825232] focus:ring-2 focus:ring-[#825232]/20"
         />
 
         <button
