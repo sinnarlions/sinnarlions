@@ -12,7 +12,7 @@ import {
   where,
   deleteDoc,
   doc,
-  getDoc,
+  onSnapshot,
   updateDoc,
 } from "firebase/firestore";
 
@@ -45,7 +45,6 @@ export default function Home() {
     };
   }, [router]);
 
- // दुसरा useEffect (saved.role न बघता फक्त currentLionsRole वाचण्यासाठी)
   useEffect(() => {
     const member = localStorage.getItem("member");
 
@@ -60,35 +59,37 @@ export default function Home() {
     setMemberName(saved.name);
     setIsSuperAdmin(saved.isSuperAdmin || false);
 
-    // saved.role पूर्णपणे वगळले आहे. फक्त currentLionsRole तपासणे:
     const userRole = saved.currentLionsRole || "Member";
     setCurrentRole(userRole);
 
-    // --- सेशन व्हॅलिडेशन तपासणी (दुसऱ्या डिव्हाइसवर लॉगिन झाले असल्यास बाहेर काढणे) ---
-    const checkSessionLive = async () => {
-      if (saved && saved.id && saved.sessionId) {
-        try {
-          const memberDocRef = doc(db, "members", saved.id);
-          const memberSnap = await getDoc(memberDocRef);
-          if (memberSnap.exists()) {
-            const currentMemberData = memberSnap.data();
-            if (saved.sessionId !== currentMemberData.sessionId) {
-              alert("Your account has been logged in from another device.");
-              localStorage.clear();
-              router.replace("/login");
-            }
+    // --- रिअल-टाइम सेशन व्हॅलिडेशन (onSnapshot) ---
+    let unsubscribeSession = () => {};
+    
+    if (saved && saved.id && saved.sessionId) {
+      const memberDocRef = doc(db, "members", saved.id);
+      
+      unsubscribeSession = onSnapshot(memberDocRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const liveMemberData = snapshot.data();
+          if (saved.sessionId !== liveMemberData.sessionId) {
+            alert("Your account has been logged in from another device.");
+            localStorage.clear();
+            router.replace("/login");
           }
-        } catch (err) {
-          console.error("Session verification failed:", err);
         }
-      }
-    };
-    checkSessionLive();
+      }, (error) => {
+        console.error("Session listener error:", error);
+      });
+    }
 
     cleanupExpiredAnnouncements();
     loadCelebrations();
     loadUpcomingCelebrations();
     loadAnnouncements();
+
+    return () => {
+      unsubscribeSession();
+    };
   }, [router]);
 
   const cleanupExpiredAnnouncements = async () => {
@@ -196,9 +197,8 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#003B75] flex flex-col antialiased font-sans">
       
-      {/* Slim & Clean Header - Logo Side la, Text Center align */}
+      {/* Header */}
       <header className="py-4 px-4 max-w-4xl w-full mx-auto text-white relative flex items-center">
-        {/* Logo at the Left Side */}
         <div className="absolute left-4">
           <Image
             src="/logo.png"
@@ -209,7 +209,6 @@ export default function Home() {
           />
         </div>
         
-        {/* Main Text Content Completely Centered */}
         <div className="flex-1 text-center min-w-0 py-1">
           <h1 className="text-xl md:text-3xl font-black tracking-tight text-white uppercase leading-none mb-1">
             Lions Connect
@@ -227,34 +226,88 @@ export default function Home() {
       <div className="flex-1 bg-[#F8F9FA] rounded-t-none md:rounded-t-[32px] px-4 md:px-12 pt-4 pb-12 shadow-inner">
         <div className="max-w-4xl mx-auto space-y-6">
           
-          {/* NEW UTILITY BAR: Navigation Buttons and Plain Logged In Text */}
+          {/* UPDATED UTILITY BAR: मोबाईलसाठी २x२ ग्रिड आणि परफेक्ट प्रोफाइल कार्ड लेआउट */}
           {memberVerified && (
-            <div className="border-b border-gray-200/60 pb-4 space-y-3">
-              {/* Buttons Row */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5">
-                  {(isSuperAdmin || currentRole === "President" || currentRole === "Secretary" || currentRole === "Treasurer") && (
+            <div className="border-b border-gray-200/60 pb-4 space-y-4">
+              
+              {/* १. प्रोफाईल माहिती सेक्शन (स्वच्छ आणि नीटनेटका डावीकडे अलाईन केलेला) */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Logged in as</p>
+                  <h3 className="text-base font-extrabold text-[#003B75] truncate">
+                    {memberName}
+                  </h3>
+                </div>
+                {currentRole && (
+                  <div className="self-start sm:self-center">
+                    <span className="text-[11px] font-black text-white bg-[#003B75] px-2.5 py-1 rounded-md shadow-sm uppercase tracking-wider inline-flex items-center gap-1">
+                      🏅 {currentRole}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* २. नेव्हिगेशन आणि लॉग आऊट बटन्स ग्रिड (मोबाईलवर २x२ आणि मोठ्या स्क्रीनवर एका ओळीत) */}
+              <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between gap-2.5">
+                <div className="grid grid-cols-2 sm:flex items-center gap-2 col-span-2 sm:col-span-1">
+                  {(isSuperAdmin || currentRole === "President" || currentRole === "Secretary" || currentRole === "Treasurer") ? (
+                    <>
+                      <button
+                        onClick={() => router.push("/admin")}
+                        className="bg-[#003B75]/10 hover:bg-[#003B75]/20 border border-[#003B75]/10 py-2.5 sm:py-1.5 sm:px-4 rounded-xl text-xs font-bold text-[#003B75] text-center transition-all shadow-sm sm:shadow-none"
+                      >
+                        Admin
+                      </button>
+                      <button
+                        onClick={() => router.push("/members")}
+                        className="bg-[#003B75]/10 hover:bg-[#003B75]/20 border border-[#003B75]/10 py-2.5 sm:py-1.5 sm:px-4 rounded-xl text-xs font-bold text-[#003B75] text-center transition-all shadow-sm sm:shadow-none"
+                      >
+                        Members
+                      </button>
+                    </>
+                  ) : (
                     <button
-                      onClick={() => router.push("/admin")}
-                      className="bg-[#003B75]/10 hover:bg-[#003B75]/20 border border-[#003B75]/10 px-3 py-1.5 rounded-lg text-xs font-bold text-[#003B75] transition-all"
+                      onClick={() => router.push("/members")}
+                      className="col-span-2 bg-[#003B75]/10 hover:bg-[#003B75]/20 border border-[#003B75]/10 py-2.5 sm:py-1.5 sm:px-4 rounded-xl text-xs font-bold text-[#003B75] text-center transition-all shadow-sm sm:shadow-none"
                     >
-                      Admin
+                      Members
                     </button>
                   )}
-                  <button
-                    onClick={() => router.push("/members")}
-                    className="bg-[#003B75]/10 hover:bg-[#003B75]/20 border border-[#003B75]/10 px-3 py-1.5 rounded-lg text-xs font-bold text-[#003B75] transition-all"
-                  >
-                    Members
-                  </button>
+                  
                   <button
                     onClick={() => router.push("/my-profile")}
-                    className="bg-[#003B75]/10 hover:bg-[#003B75]/20 border border-[#003B75]/10 px-3 py-1.5 rounded-lg text-xs font-bold text-[#003B75] transition-all"
+                    className="bg-[#003B75]/10 hover:bg-[#003B75]/20 border border-[#003B75]/10 py-2.5 sm:py-1.5 sm:px-4 rounded-xl text-xs font-bold text-[#003B75] text-center transition-all shadow-sm sm:shadow-none"
                   >
                     My Profile
                   </button>
+
+                  <button 
+                    onClick={async () => { 
+                      const memberStorage = localStorage.getItem("member");
+                      if (memberStorage) {
+                        try {
+                          const savedData = JSON.parse(memberStorage);
+                          if (savedData.id) {
+                            const memberRef = doc(db, "members", savedData.id);
+                            await updateDoc(memberRef, {
+                              isLoggedIn: false,
+                              sessionId: "",
+                            });
+                          }
+                        } catch (error) {
+                          console.error("Logout state update error:", error);
+                        }
+                      }
+                      localStorage.removeItem("member"); 
+                      router.replace("/login"); 
+                    }}
+                    className="sm:hidden bg-[#F2A900] hover:bg-[#d69500] py-2.5 rounded-xl text-xs font-black text-[#003B75] text-center shadow-md transition-colors"
+                  >
+                    Log Out
+                  </button>
                 </div>
                 
+                {/* मोठी स्क्रीन असताना दिसणारे लॉग आऊट बटण */}
                 <button 
                   onClick={async () => { 
                     const memberStorage = localStorage.getItem("member");
@@ -263,7 +316,6 @@ export default function Home() {
                         const savedData = JSON.parse(memberStorage);
                         if (savedData.id) {
                           const memberRef = doc(db, "members", savedData.id);
-                          // लॉग आउट करण्यापूर्वी Firestore मधील डेटा रीसेट करणे
                           await updateDoc(memberRef, {
                             isLoggedIn: false,
                             sessionId: "",
@@ -276,24 +328,12 @@ export default function Home() {
                     localStorage.removeItem("member"); 
                     router.replace("/login"); 
                   }}
-                  className="bg-[#F2A900] hover:bg-[#d69500] px-3 py-1.5 rounded-lg text-xs font-bold text-[#003B75] shadow-sm transition-colors"
+                  className="hidden sm:block bg-[#F2A900] hover:bg-[#d69500] px-4 py-1.5 rounded-xl text-xs font-black text-[#003B75] shadow-sm transition-colors"
                 >
                   Log Out
                 </button>
               </div>
 
-            {/* Plain Logged In Text Row */}
-              <div className="text-right pt-1">
-                <p className="text-sm font-medium text-gray-500">
-                  <span className="text-gray-400">Logged in as:</span>{" "}
-                  <span className="font-bold text-[#003B75]">{memberName}</span>
-                </p>
-                {currentRole && (
-                  <p className="text-xs font-bold text-white bg-[#003B75] inline-block px-2 py-0.5 rounded mt-1 shadow-sm uppercase tracking-wider">
-                    🏅 {currentRole}
-                  </p>
-                )}
-              </div>
             </div>
           )}
 
