@@ -12,6 +12,8 @@ import {
   where,
   deleteDoc,
   doc,
+  getDoc,
+  updateDoc,
 } from "firebase/firestore";
 
 export default function Home() {
@@ -61,6 +63,27 @@ export default function Home() {
     // saved.role पूर्णपणे वगळले आहे. फक्त currentLionsRole तपासणे:
     const userRole = saved.currentLionsRole || "Member";
     setCurrentRole(userRole);
+
+    // --- सेशन व्हॅलिडेशन तपासणी (दुसऱ्या डिव्हाइसवर लॉगिन झाले असल्यास बाहेर काढणे) ---
+    const checkSessionLive = async () => {
+      if (saved && saved.id && saved.sessionId) {
+        try {
+          const memberDocRef = doc(db, "members", saved.id);
+          const memberSnap = await getDoc(memberDocRef);
+          if (memberSnap.exists()) {
+            const currentMemberData = memberSnap.data();
+            if (saved.sessionId !== currentMemberData.sessionId) {
+              alert("Your account has been logged in from another device.");
+              localStorage.clear();
+              router.replace("/login");
+            }
+          }
+        } catch (err) {
+          console.error("Session verification failed:", err);
+        }
+      }
+    };
+    checkSessionLive();
 
     cleanupExpiredAnnouncements();
     loadCelebrations();
@@ -233,7 +256,26 @@ export default function Home() {
                 </div>
                 
                 <button 
-                  onClick={() => { localStorage.removeItem("member"); router.replace("/login"); }}
+                  onClick={async () => { 
+                    const memberStorage = localStorage.getItem("member");
+                    if (memberStorage) {
+                      try {
+                        const savedData = JSON.parse(memberStorage);
+                        if (savedData.id) {
+                          const memberRef = doc(db, "members", savedData.id);
+                          // लॉग आउट करण्यापूर्वी Firestore मधील डेटा रीसेट करणे
+                          await updateDoc(memberRef, {
+                            isLoggedIn: false,
+                            sessionId: "",
+                          });
+                        }
+                      } catch (error) {
+                        console.error("Logout state update error:", error);
+                      }
+                    }
+                    localStorage.removeItem("member"); 
+                    router.replace("/login"); 
+                  }}
                   className="bg-[#F2A900] hover:bg-[#d69500] px-3 py-1.5 rounded-lg text-xs font-bold text-[#003B75] shadow-sm transition-colors"
                 >
                   Log Out

@@ -9,9 +9,13 @@ import {
   getDocs,
   query,
   where,
+  doc,
+  updateDoc,
+  serverTimestamp,
 } from "firebase/firestore";
+
 export default function LoginPage() {
-    const router = useRouter();   
+  const router = useRouter();   
   const [mobile, setMobile] = useState("");
   const [pin, setPin] = useState("");
   
@@ -46,78 +50,88 @@ export default function LoginPage() {
         />
 
         <button
-  onClick={async () => {
+          onClick={async () => {
 
-    if (!mobile.trim()) {
-      alert("Enter mobile number");
-      return;
-    }
+            if (!mobile.trim()) {
+              alert("Enter mobile number");
+              return;
+            }
 
-    if (!pin.trim()) {
-      alert("Enter PIN");
-      return;
-    }
+            if (!pin.trim()) {
+              alert("Enter PIN");
+              return;
+            }
 
-    const q = query(
-      collection(db, "members"),
-      where("mobile", "==", mobile)
-    );
+            const q = query(
+              collection(db, "members"),
+              where("mobile", "==", mobile)
+            );
 
-    const snapshot = await getDocs(q);
+            const snapshot = await getDocs(q);
 
-    if (snapshot.empty) {
-      alert("Mobile number not found");
-      return;
-    }
+            if (snapshot.empty) {
+              alert("Mobile number not found");
+              return;
+            }
 
-    const memberDoc = snapshot.docs[0];
-    const member = memberDoc.data();
+            const memberDoc = snapshot.docs[0];
+            const member = memberDoc.data();
 
-    if (!member.isActive) {
-      alert("Your account is inactive.");
-      return;
-    }
+            if (!member.isActive) {
+              alert("Your account is inactive.");
+              return;
+            }
 
-    if (String(member.loginPin) !== pin) {
-      alert("Invalid PIN");
-      return;
-    }
+            if (String(member.loginPin) !== pin) {
+              alert("Invalid PIN");
+              return;
+            }
 
-    localStorage.setItem(
-  "member",
-  JSON.stringify({
-    id: memberDoc.id,
+            // १. सिंगल डिव्हाइस लॉगिन तपासणी
+            if (member.isLoggedIn === true) {
+              alert("This account is already logged in on another device.");
+              return;
+            }
 
-    memberCode: member.memberCode,
+            // २. युनिक session id तयार करणे
+            const sessionId = crypto.randomUUID();
 
-    name: member.name,
+            // ३. Firestore अपडेट करणे
+            const memberRef = doc(db, "members", memberDoc.id);
+            await updateDoc(memberRef, {
+              isLoggedIn: true,
+              sessionId: sessionId,
+              lastLogin: serverTimestamp(),
+            });
 
-    mobile: member.mobile,
+            // ४. LocalStorage मध्ये sessionId सह ऑब्जेक्ट सेव्ह करणे
+            localStorage.setItem(
+              "member",
+              JSON.stringify({
+                id: memberDoc.id,
+                memberCode: member.memberCode,
+                name: member.name,
+                mobile: member.mobile,
+                currentLionsRole: member.currentLionsRole || "Member",
+                isSuperAdmin: member.isSuperAdmin || false,
+                isPinChanged: member.isPinChanged,
+                sessionId: sessionId, 
+              })
+            );
+            localStorage.setItem("memberName", member.name);
+            localStorage.setItem("memberMobile", member.mobile);
+            
+            if (!member.isPinChanged) {
+              router.replace("/change-pin");
+            } else {
+              router.replace("/");
+            }
 
-    currentLionsRole:
-      member.currentLionsRole || "Member",
-
-    isSuperAdmin:
-      member.isSuperAdmin || false,
-
-    isPinChanged:
-      member.isPinChanged,
-  })
- 
-);
- localStorage.setItem("memberName", member.name);
-   localStorage.setItem("memberMobile", member.mobile);
-    if (!member.isPinChanged) {
-  router.replace("/change-pin");
-} else {
-  router.replace("/");
-}
-
-  }}
- className="mt-6 w-full rounded-xl bg-[#825232] py-4 text-lg font-semibold text-white transition hover:bg-[#6E4025] active:scale-[0.98]"
->
-  Login
-</button>
+          }}
+          className="mt-6 w-full rounded-xl bg-[#825232] py-4 text-lg font-semibold text-white transition hover:bg-[#6E4025] active:scale-[0.98]"
+        >
+          Login
+        </button>
 
       </div>
 
