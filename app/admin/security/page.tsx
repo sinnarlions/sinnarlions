@@ -132,14 +132,15 @@ export default function SecurityPage() {
           </button>
         </div>
 
-        {/* --- SEARCH BAR --- */}
+       {/* --- SEARCH BAR --- */}
         <div className="relative">
           <input
             type="text"
             placeholder="🔍 Search member by name or code (e.g. LC001)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-gray-200 p-3 text-sm font-medium focus:outline-none focus:border-[#003B75] bg-white shadow-xs transition-colors"
+            // 👇 इथे text-base, text-black आणि placeholder चा अचूक रंग दिला आहे
+            className="w-full rounded-xl border border-gray-300 p-3 text-base font-bold text-black placeholder:text-gray-400 bg-white shadow-xs outline-none focus:border-[#003B75] transition-colors"
           />
         </div>
 
