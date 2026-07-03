@@ -485,66 +485,51 @@ export default function AdminPage() {
         </div>
 
 {/* ================= SUPER ADMIN TOOLS ================= */}
-
 {isSuperAdmin && (
-  <section className="mt-10 rounded-3xl border-2 border-[#F2A900]/30 bg-gradient-to-br from-[#FFFBEA] to-[#F8F9FA] p-6 shadow-sm">
-
-    <div className="mb-5 flex items-center gap-3">
-
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F2A900] text-2xl shadow">
-        🛡️
-      </div>
-
-      <div>
-        <h2 className="text-xl font-black text-[#003B75]">
-          Super Admin Tools
-        </h2>
-
-        <p className="text-sm text-gray-600">
-          These tools are available only for Super Admin.
-        </p>
-      </div>
-
+  <section className="mt-8 rounded-2xl border border-[#F2A900]/35 bg-[#FFFBEA]/40 p-4 sm:p-5 shadow-xs">
+    
+    {/* सुबक आणि लहान हेडिंग */}
+    <div className="mb-4 flex items-center gap-2">
+      <span className="text-lg">🛡️</span>
+      <h2 className="text-base font-black text-[#003B75] tracking-tight">
+        Super Admin Tools
+      </h2>
     </div>
 
-    <button
-      onClick={() => router.push("/admin/members")}
-      className="w-full rounded-2xl border border-[#003B75]/20 bg-white p-6 text-left transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
-    >
-
-      <div className="flex items-center justify-between">
-
-        <div className="flex items-center gap-5">
-
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#003B75] text-3xl text-white">
-            👥
-          </div>
-
-          <div>
-
-            <h3 className="text-xl font-black text-[#003B75]">
-              Member Management
-            </h3>
-
-            <p className="mt-1 text-sm text-gray-600">
-              View, Edit, Add and Delete Club Members
-            </p>
-
-          </div>
-
+    {/* स्लीक बटन्स - मोबाईलवर एकाखाली एक, मोठ्या स्क्रीनवर शेजारी-शेजारी */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+      
+      {/* १. जुने मॅनेजमेंट पेज (नवीन नावासह) */}
+      <button
+        onClick={() => router.push("/admin/members")}
+        className="w-full flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-xs hover:border-[#003B75]/35 active:scale-[0.99] transition-all cursor-pointer"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-lg shrink-0">👥</span>
+          <span className="text-sm font-bold text-[#003B75] truncate">
+            Member Profiles
+          </span>
         </div>
+        <span className="text-xs font-bold text-gray-400 pl-2">→</span>
+      </button>
 
-        <div className="hidden sm:flex items-center gap-2 rounded-xl bg-[#003B75] px-5 py-2 text-sm font-bold text-white shadow">
-          Open →
+      {/* २. नवीन सेक्युरिटी पेज */}
+      <button
+        onClick={() => router.push("/admin/security")}
+        className="w-full flex items-center justify-between rounded-xl border border-rose-200 bg-white px-4 py-3 shadow-xs hover:border-rose-400 active:scale-[0.99] transition-all cursor-pointer"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-lg shrink-0">🔐</span>
+          <span className="text-sm font-bold text-[#003B75] truncate">
+            Login & Security
+          </span>
         </div>
+        <span className="text-xs font-bold text-rose-400 pl-2">→</span>
+      </button>
 
-      </div>
-
-    </button>
-
+    </div>
   </section>
 )}
-
       </div>
     </main>
   );
