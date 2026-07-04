@@ -49,7 +49,7 @@ export default function MyProfilePage() {
         "hobbies",
         "specialSkills",
         "childrenNames",
-        "photoUrl"
+        "profileImage"
       ];
       
       let filledCount = 2; 
@@ -149,10 +149,10 @@ export default function MyProfilePage() {
             const uploadedUrl = result.data.url;
             
             await updateDoc(doc(db, "members", member.id), {
-              photoUrl: uploadedUrl,
+              profileImage: uploadedUrl,
             });
 
-            setMember((prev: any) => ({ ...prev, photoUrl: uploadedUrl }));
+            setMember((prev: any) => ({ ...prev, profileImage: uploadedUrl }));
             alert("Profile photo updated successfully 📸");
           } else {
             alert("Failed to upload image to server.");

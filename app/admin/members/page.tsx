@@ -315,15 +315,7 @@ export default function MemberManagementPage() {
         />
       )}
 
-      {isAddModalOpen && (
-        <MemberAddModal 
-          onClose={() => setIsAddModalOpen(false)} 
-          onSuccess={() => {
-            setIsAddModalOpen(false);
-            loadMembers(); // नवीन मेंबर जोडल्यावर लिस्ट लगेच अपडेट होईल
-          }} 
-        />
-      )}
+      
       {isAddModalOpen && (
         <MemberAddModal 
           onClose={() => setIsAddModalOpen(false)} 
