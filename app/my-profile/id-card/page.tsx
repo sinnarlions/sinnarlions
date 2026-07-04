@@ -105,8 +105,8 @@ export default function DigitalIDCardPage() {
       <div className="max-w-sm mx-auto px-4 mt-6 print:mt-0 print:px-0">
         
         {/* ================= MODERN CLEAN ID CARD ================= */}
-        <div className="relative w-full aspect-[1/1.58] bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col justify-between text-center print:shadow-none print:border-slate-300">
-          
+{/* ✅ ही नवीन ओळ टाका: */}
+<div className="relative w-full min-h-[540px] pb-4 bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col justify-between text-center print:shadow-none print:border-slate-300">          
           {/* 1. TOP HEADER: Dark Navy Blue Background */}
           <div className="bg-[#0F172A] pt-6 pb-4 px-4 relative z-10">
             <div className="text-white font-black text-sm tracking-wider uppercase">
@@ -126,7 +126,7 @@ export default function DigitalIDCardPage() {
           </div>
 
           {/* 2. MIDDLE SECTION: Profile Photo (Thick Gold Border) */}
-          <div className="flex flex-col items-center justify-center pt-8 z-10">
+          <div className="flex flex-col items-center justify-center pt-4 z-10">
             <div className="relative">
               <div className="h-28 w-28 rounded-full border-4 border-[#EAB308] bg-slate-100 overflow-hidden shadow-md flex items-center justify-center">
                 {member.photoUrl ? (
@@ -139,7 +139,7 @@ export default function DigitalIDCardPage() {
 
             {/* Identity Text */}
             <div className="mt-3 space-y-0.5">
-              <h2 className="text-[#0F172A] text-xl font-black tracking-tight leading-tight">
+              <h2 className="text-[#0F172A] text-[15px] font-black tracking-tight leading-tight">
                 {member.name}
               </h2>
               <div className="text-[#EAB308] text-xs font-extrabold tracking-widest uppercase">
@@ -149,7 +149,7 @@ export default function DigitalIDCardPage() {
           </div>
 
           {/* 3. DETAILS SECTION: Grid Info on White Background */}
-          <div className="px-6 py-2 text-left space-y-2.5 z-10 max-w-[320px] mx-auto w-full">
+          <div className="px-6 py-1.5 text-left space-y-1.5 z-10 max-w-[320px] mx-auto w-full">
             <div className="grid grid-cols-3 border-b border-slate-100 pb-1">
               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Member ID</span>
               <span className="col-span-2 text-[11px] font-bold text-slate-800 tracking-wide">: {member.memberCode || "-"}</span>
