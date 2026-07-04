@@ -285,8 +285,8 @@ export default function MyProfilePage() {
                 <span className="bg-[#D4AF37] text-[#0A192F] text-[9px] font-black px-1.5 py-0.2 rounded tracking-wider uppercase inline-block">
                   {member?.memberCode || "LIONS"}
                 </span>
-                <h2 className="text-base sm:text-2xl font-black tracking-tight text-white leading-tight truncate">{member?.name}</h2>
-                <p className="text-[11px] md:text-xs text-slate-300 font-medium truncate">
+{/* ✅ ही नवीन ओळ तिथे पेस्ट करा: */}
+                <h2 className="text-base sm:text-2xl font-black tracking-tight text-white leading-tight max-w-[180px] sm:max-w-none break-words">{member?.name}</h2>                <p className="text-[11px] md:text-xs text-slate-300 font-medium truncate">
                   🦁 {member?.currentLionsRole || "Club Member"}
                 </p>
               </div>
