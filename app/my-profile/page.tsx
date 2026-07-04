@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { db } from "@/src/firebase/config";
@@ -8,11 +8,16 @@ import { QRCodeSVG } from "qrcode.react";
 
 export default function MyProfilePage() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [member, setMember] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [completionPercentage, setCompletionPercentage] = useState(0);
+  const [uploading, setUploading] = useState(false);
+
+  const IMGBB_API_KEY = "5bb2b7c8e03b0f57750176b9d8108ef8";
 
   useEffect(() => {
     loadMyProfile();
@@ -43,10 +48,11 @@ export default function MyProfilePage() {
         "businessDescription",
         "hobbies",
         "specialSkills",
-        "childrenNames"
+        "childrenNames",
+        "photoUrl"
       ];
       
-      let filledCount = 2; // नाव (locked) आणि मोबाईल (locked) हे आधीच भरलेले असतात.
+      let filledCount = 2; 
       let totalFields = fieldsToTrack.length + 2;
 
       fieldsToTrack.forEach((field) => {
@@ -90,11 +96,81 @@ export default function MyProfilePage() {
     }
   };
 
+  // 🛠️ फोटो कॉम्प्रेस आणि ऑटो-क्रॉप करण्याचे लॉजिक
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event: ProgressEvent<FileReader>) => {
+      const img = new Image();
+      img.src = (event.target?.result as string) || "";
+      
+      img.onload = async () => {
+        const canvas = document.createElement("canvas");
+        const size = 300;
+        canvas.width = size;
+        canvas.height = size;
+        
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          setUploading(false);
+          return;
+        }
+
+        const sourceSize = Math.min(img.width, img.height);
+        const sourceX = (img.width - sourceSize) / 2;
+        const sourceY = (img.height - sourceSize) / 2;
+
+        ctx.drawImage(
+          img,
+          sourceX, sourceY, sourceSize, sourceSize,
+          0, 0, size, size
+        );
+
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+        const compressedBase64 = dataUrl.split(",")[1];
+
+        try {
+          const formData = new FormData();
+          formData.append("image", compressedBase64);
+
+          const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            const uploadedUrl = result.data.url;
+            
+            await updateDoc(doc(db, "members", member.id), {
+              photoUrl: uploadedUrl,
+            });
+
+            setMember((prev: any) => ({ ...prev, photoUrl: uploadedUrl }));
+            alert("Profile photo updated successfully 📸");
+          } else {
+            alert("Failed to upload image to server.");
+          }
+        } catch (error) {
+          console.error(error);
+          alert("Error while uploading image.");
+        } finally {
+          setUploading(false);
+        }
+      };
+    };
+  };
+
   const saveProfile = async () => {
     try {
       if (!member?.id) return;
 
-      // नाव लॉक असल्यामुळे ते अपडेट पेलोडमधून वगळले आहे
       await updateDoc(doc(db, "members", member.id), {
         email: member.email || "",
         address: member.address || "",
@@ -143,7 +219,7 @@ export default function MyProfilePage() {
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-800 pb-8">
-      {/* --- १. COMPACT HEADER (कमी उंची आणि स्पष्ट बटण) --- */}
+      {/* --- १. COMPACT HEADER --- */}
       <div className="border-b border-slate-200 bg-[#0A192F] sticky top-0 z-10 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between">
           <button
@@ -165,30 +241,78 @@ export default function MyProfilePage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-3 mt-3">
-        {/* --- २. SLIM HERO CARD (नाव आणि QR शेजारी-शेजारी) --- */}
+        {/* --- २. SLIM HERO CARD (प्रोफाइल फोटोसह) --- */}
         <div className="bg-[#0A192F] rounded-xl p-3.5 shadow-md relative overflow-hidden text-white">
           <div className="flex items-center justify-between gap-3 relative z-10">
-            <div className="space-y-0.5 min-w-0">
-              <span className="bg-[#D4AF37] text-[#0A192F] text-[9px] font-black px-1.5 py-0.2 rounded tracking-wider uppercase inline-block">
-                {member.memberCode || "LIONS"}
-              </span>
-              <h2 className="text-lg md:text-2xl font-black tracking-tight text-white leading-tight truncate">{member.name}</h2>
-              <p className="text-[11px] md:text-xs text-slate-300 font-medium truncate">
-                🦁 {member.currentLionsRole || "Club Member"}
-              </p>
+            
+            <div className="flex items-center gap-3 min-w-0">
+              {/* प्रोफाइल इमेज फ्रेम */}
+              <div className="relative shrink-0 flex flex-col items-center">
+                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full border-2 border-[#D4AF37] bg-[#112240] overflow-hidden flex items-center justify-center relative shadow-inner">
+                  {member?.photoUrl ? (
+                    <img src={member.photoUrl} alt="profile" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-3xl">🦁</span>
+                  )}
+                  {uploading && (
+                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-[10px] font-bold text-white animate-pulse">
+                      ...
+                    </div>
+                  )}
+                </div>
+                
+                {/* चेंज फोटो बटण (फक्त एडिट मोडमध्ये) */}
+                {isEditing && (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="absolute -bottom-1 bg-[#D4AF37] text-[#0A192F] px-1.5 py-0.5 rounded-full text-[9px] font-black shadow-md cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+                  >
+                    📷 Change
+                  </button>
+                )}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handlePhotoChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+              </div>
+
+              {/* नावाची माहिती */}
+              <div className="space-y-0.5 min-w-0">
+                <span className="bg-[#D4AF37] text-[#0A192F] text-[9px] font-black px-1.5 py-0.2 rounded tracking-wider uppercase inline-block">
+                  {member?.memberCode || "LIONS"}
+                </span>
+                <h2 className="text-base sm:text-2xl font-black tracking-tight text-white leading-tight truncate">{member?.name}</h2>
+                <p className="text-[11px] md:text-xs text-slate-300 font-medium truncate">
+                  🦁 {member?.currentLionsRole || "Club Member"}
+                </p>
+              </div>
             </div>
             
-            {/* डिजिटल बिझनेस कार्ड ओळखण्यासाठी स्पष्ट नाव असलेले बटण */}
-            <button
-              onClick={() => setShowQRModal(true)}
-              className="bg-[#112240] hover:bg-[#172A45] border border-[#D4AF37]/30 text-[#D4AF37] p-2 rounded-lg font-bold text-[10px] md:text-[11px] flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-sm shrink-0"
-            >
-              📇 Business QR
-            </button>
+            {/* बटन्स */}
+            <div className="flex flex-col gap-1.5 shrink-0">
+            {/* 🛠️ बटणाचा पाथ दुरुस्त करा */}
+<button
+  onClick={() => router.push(`/my-profile/id-card`)}
+  className="bg-[#D4AF37] text-[#0A192F] px-2 py-1.5 rounded-lg font-black text-[10px] sm:text-[11px] flex items-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm text-center justify-center"
+>
+  🪪 View ID Card
+</button>
+              <button
+                onClick={() => setShowQRModal(true)}
+                className="bg-[#112240] hover:bg-[#172A45] border border-[#D4AF37]/30 text-[#D4AF37] px-2 py-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] flex items-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm text-center justify-center"
+              >
+                📇 Business QR
+              </button>
+            </div>
+
           </div>
         </div>
 
-        {/* --- ३. स्वतंत्र प्रोग्रेस बार (स्वतंत्र पांढरे कार्ड आणि स्पष्ट नाव) --- */}
+        {/* --- ३. प्रोग्रेस बार --- */}
         <div className="bg-white rounded-xl p-3.5 mt-2.5 shadow-xs border border-slate-200">
           <div className="flex justify-between items-center mb-1.5">
             <span className="text-[10px] md:text-xs font-bold text-slate-500 tracking-wide uppercase">📈 Profile Completion Status</span>
@@ -204,34 +328,34 @@ export default function MyProfilePage() {
 
         {/* --- FORM SECTIONS --- */}
         <div className="space-y-3.5 mt-3">
-          {/* Section: Locked Info (नाव इथे लॉकड स्वरूपात सुरक्षित आहे) */}
+          {/* Section: Locked Info */}
           <div className="bg-white rounded-xl p-3.5 md:p-5 shadow-xs border border-slate-200">
             <h2 className="text-xs font-bold text-[#0A192F] mb-2.5 border-b border-slate-100 pb-1">🔒 Personal & Admin Info (Locked)</h2>
             <div className="grid gap-2.5 md:grid-cols-2">
               <div>
                 <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Full Name (पूर्ण नाव)</label>
-                <div className="w-full rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs text-slate-700 font-semibold">{member.name || "-"}</div>
+                <div className="w-full rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs text-slate-700 font-semibold">{member?.name || "-"}</div>
               </div>
               <div>
                 <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Mobile Number</label>
-                <div className="w-full rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs text-slate-700 font-semibold">{member.mobile || "-"}</div>
+                <div className="w-full rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs text-slate-700 font-semibold">{member?.mobile || "-"}</div>
               </div>
               <div>
                 <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Date of Birth</label>
-                <div className="w-full rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs text-slate-700 font-semibold">{member.dob || "-"}</div>
+                <div className="w-full rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs text-slate-700 font-semibold">{member?.dob || "-"}</div>
               </div>
               <div>
                 <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Spouse Name</label>
-                <div className="w-full rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs text-slate-700 font-semibold">{member.spouseName || "-"}</div>
+                <div className="w-full rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs text-slate-700 font-semibold">{member?.spouseName || "-"}</div>
               </div>
               <div className="md:col-span-2">
                 <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Wedding Anniversary</label>
-                <div className="w-full rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs text-slate-700 font-semibold">{member.anniversary || "-"}</div>
+                <div className="w-full rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs text-slate-700 font-semibold">{member?.anniversary || "-"}</div>
               </div>
             </div>
           </div>
 
-          {/* Section: Contact Info (एडिटेबल) */}
+          {/* Section: Contact Info */}
           <div className="bg-white rounded-xl p-3.5 md:p-5 shadow-xs border border-slate-200">
             <h2 className="text-xs font-bold text-[#0A192F] mb-2.5 border-b border-slate-100 pb-1">Contact Information</h2>
             <div className="space-y-2.5">
@@ -239,7 +363,7 @@ export default function MyProfilePage() {
                 <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Email Address</label>
                 <input
                   type="email"
-                  value={member.email || ""}
+                  value={member?.email || ""}
                   readOnly={!isEditing}
                   onChange={(e) => setMember({ ...member, email: e.target.value })}
                   className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none ${
@@ -252,7 +376,7 @@ export default function MyProfilePage() {
                 <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Home Address</label>
                 <textarea
                   rows={2}
-                  value={member.address || ""}
+                  value={member?.address || ""}
                   readOnly={!isEditing}
                   onChange={(e) => setMember({ ...member, address: e.target.value })}
                   className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none resize-none ${
@@ -272,7 +396,7 @@ export default function MyProfilePage() {
                 <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Profession</label>
                 <input
                   type="text"
-                  value={member.profession || ""}
+                  value={member?.profession || ""}
                   readOnly={!isEditing}
                   onChange={(e) => setMember({ ...member, profession: e.target.value })}
                   className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none ${
@@ -285,7 +409,7 @@ export default function MyProfilePage() {
                 <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Company Name</label>
                 <input
                   type="text"
-                  value={member.companyName || ""}
+                  value={member?.companyName || ""}
                   readOnly={!isEditing}
                   onChange={(e) => setMember({ ...member, companyName: e.target.value })}
                   className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none ${
@@ -298,7 +422,7 @@ export default function MyProfilePage() {
                 <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Job Title / Designation</label>
                 <input
                   type="text"
-                  value={member.jobTitle || ""}
+                  value={member?.jobTitle || ""}
                   readOnly={!isEditing}
                   onChange={(e) => setMember({ ...member, jobTitle: e.target.value })}
                   className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none ${
@@ -311,7 +435,7 @@ export default function MyProfilePage() {
                 <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Business Description</label>
                 <textarea
                   rows={2}
-                  value={member.businessDescription || ""}
+                  value={member?.businessDescription || ""}
                   readOnly={!isEditing}
                   onChange={(e) => setMember({ ...member, businessDescription: e.target.value })}
                   className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none resize-none ${
@@ -331,7 +455,7 @@ export default function MyProfilePage() {
                 <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Hobbies</label>
                 <input
                   type="text"
-                  value={member.hobbies || ""}
+                  value={member?.hobbies || ""}
                   readOnly={!isEditing}
                   onChange={(e) => setMember({ ...member, hobbies: e.target.value })}
                   className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none ${
@@ -344,7 +468,7 @@ export default function MyProfilePage() {
                 <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Special Skills</label>
                 <input
                   type="text"
-                  value={member.specialSkills || ""}
+                  value={member?.specialSkills || ""}
                   readOnly={!isEditing}
                   onChange={(e) => setMember({ ...member, specialSkills: e.target.value })}
                   className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none ${
@@ -357,7 +481,7 @@ export default function MyProfilePage() {
                 <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Children Names</label>
                 <input
                   type="text"
-                  value={member.childrenNames || ""}
+                  value={member?.childrenNames || ""}
                   readOnly={!isEditing}
                   onChange={(e) => setMember({ ...member, childrenNames: e.target.value })}
                   className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none ${
@@ -376,20 +500,20 @@ export default function MyProfilePage() {
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
                   <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Year Joined</label>
-                  <div className="bg-slate-50 p-2 border border-slate-200 rounded-lg">{member.yearJoinedLions || "-"}</div>
+                  <div className="bg-slate-50 p-2 border border-slate-200 rounded-lg">{member?.yearJoinedLions || "-"}</div>
                 </div>
                 <div>
                   <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Current Role</label>
-                  <div className="bg-slate-50 p-2 border border-slate-200 rounded-lg text-[#0A192F] font-bold">{member.currentLionsRole || "-"}</div>
+                  <div className="bg-slate-50 p-2 border border-slate-200 rounded-lg text-[#0A192F] font-bold">{member?.currentLionsRole || "-"}</div>
                 </div>
               </div>
               <div>
                 <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Past Positions Held</label>
-                <div className="bg-slate-50 p-2 border border-slate-200 rounded-lg whitespace-pre-wrap font-medium">{member.pastPositions || "None"}</div>
+                <div className="bg-slate-50 p-2 border border-slate-200 rounded-lg whitespace-pre-wrap font-medium">{member?.pastPositions || "None"}</div>
               </div>
               <div>
                 <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Awards & Achievements</label>
-                <div className="bg-slate-50 p-2 border border-slate-200 rounded-lg whitespace-pre-wrap font-medium">{member.awardsAchievements || "None"}</div>
+                <div className="bg-slate-50 p-2 border border-slate-200 rounded-lg whitespace-pre-wrap font-medium">{member?.awardsAchievements || "None"}</div>
               </div>
             </div>
           </div>
@@ -408,7 +532,7 @@ export default function MyProfilePage() {
         )}
       </div>
 
-      {/* --- QR CODE POPUP MODAL (Digital Business Card साठी) --- */}
+      {/* --- QR CODE POPUP MODAL --- */}
       {showQRModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-xs animate-fadeIn">
           <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm p-5 text-center shadow-2xl relative">
@@ -421,8 +545,8 @@ export default function MyProfilePage() {
               <QRCodeSVG value={getVCardData()} size={180} level="M" includeMargin={true} />
             </div>
 
-            <div className="text-sm font-bold text-[#0A192F] mb-0.5">{member.name}</div>
-            <div className="text-xs text-slate-500 mb-4">{member.currentLionsRole}</div>
+            <div className="text-sm font-bold text-[#0A192F] mb-0.5">{member?.name}</div>
+            <div className="text-xs text-slate-500 mb-4">{member?.currentLionsRole}</div>
 
             <button
               onClick={() => setShowQRModal(false)}
