@@ -280,16 +280,21 @@ export default function MyProfilePage() {
                 />
               </div>
 
-              {/* नावाची माहिती */}
-              <div className="space-y-0.5 min-w-0">
-                <span className="bg-[#D4AF37] text-[#0A192F] text-[9px] font-black px-1.5 py-0.2 rounded tracking-wider uppercase inline-block">
-                  {member?.memberCode || "LIONS"}
-                </span>
-{/* ✅ ही नवीन ओळ तिथे पेस्ट करा: */}
-                <h2 className="text-base sm:text-2xl font-black tracking-tight text-white leading-tight max-w-[180px] sm:max-w-none break-words">{member?.name}</h2>                <p className="text-[11px] md:text-xs text-slate-300 font-medium truncate">
-                  🦁 {member?.currentLionsRole || "Club Member"}
-                </p>
-              </div>
+             {/* नावाची माहिती */}
+<div className="space-y-1 min-w-0 flex-1">
+  <span className="bg-[#D4AF37] text-[#0A192F] text-[9px] font-black px-1.5 py-0.5 rounded tracking-wider uppercase inline-block">
+    {member?.memberCode || "LIONS"}
+  </span>
+  
+  {/* सुधारित h2 टॅग */}
+  <h2 className="text-sm sm:text-xl font-bold tracking-tight text-white leading-tight break-normal whitespace-normal">
+    {member?.name}
+  </h2>
+  
+  <p className="text-[11px] md:text-xs text-slate-300 font-medium">
+    🦁 {member?.currentLionsRole || "Club Member"}
+  </p>
+</div>
             </div>
             
             {/* बटन्स */}
