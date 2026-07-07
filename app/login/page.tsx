@@ -166,17 +166,11 @@ export default function LoginPage() {
             }
 
             // सिंगल डिव्हाइस लॉगिन चेक
-            if (member.isLoggedIn === true) {
-              if (member.isSuperAdmin === true) {
-                const proceed = confirm(
-                  "Your account is already logged in on another device. Continue and log out the previous device?"
-                );
-                if (!proceed) return;
-              } else {
-                alert("This account is already logged in on another device.");
-                return;
-              }
-            }
+            // Single Device Login (Except Super Admin)
+if (!member.isSuperAdmin && member.isLoggedIn === true) {
+  alert("This account is already logged in on another device.");
+  return;
+}
 
             const sessionId = crypto.randomUUID();
             const memberRef = doc(db, "members", memberDoc.id);

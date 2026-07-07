@@ -62,25 +62,31 @@ export default function Home() {
     const userRole = saved.currentLionsRole || "Member";
     setCurrentRole(userRole);
 
-    // --- रिअल-टाइम सेशन व्हॅलिडेशन (onSnapshot) ---
-    let unsubscribeSession = () => {};
-    
-    if (saved && saved.id && saved.sessionId) {
-      const memberDocRef = doc(db, "members", saved.id);
-      
-      unsubscribeSession = onSnapshot(memberDocRef, (snapshot) => {
-        if (snapshot.exists()) {
-          const liveMemberData = snapshot.data();
-          if (saved.sessionId !== liveMemberData.sessionId) {
-            alert("Your account has been logged in from another device.");
-            localStorage.clear();
-            router.replace("/login");
-          }
+  // --- रिअल-टाइम सेशन व्हॅलिडेशन (onSnapshot) ---
+let unsubscribeSession = () => {};
+
+// 👑 Super Admin साठी Session Validation Skip
+if (saved && saved.id && saved.sessionId && !saved.isSuperAdmin) {
+  const memberDocRef = doc(db, "members", saved.id);
+
+  unsubscribeSession = onSnapshot(
+    memberDocRef,
+    (snapshot) => {
+      if (snapshot.exists()) {
+        const liveMemberData = snapshot.data();
+
+        if (saved.sessionId !== liveMemberData.sessionId) {
+          alert("Your account has been logged in from another device.");
+          localStorage.clear();
+          router.replace("/login");
         }
-      }, (error) => {
-        console.error("Session listener error:", error);
-      });
+      }
+    },
+    (error) => {
+      console.error("Session listener error:", error);
     }
+  );
+}
 
     cleanupExpiredAnnouncements();
     loadCelebrations();
@@ -274,10 +280,12 @@ export default function Home() {
                         const savedData = JSON.parse(memberStorage);
                         if (savedData.id) {
                           const memberRef = doc(db, "members", savedData.id);
-                          await updateDoc(memberRef, {
-                            isLoggedIn: false,
-                            sessionId: "",
-                          });
+                          if (!savedData.isSuperAdmin) {
+  await updateDoc(memberRef, {
+    isLoggedIn: false,
+    sessionId: "",
+  });
+}
                         }
                       } catch (error) {
                         console.error("Logout state update error:", error);
