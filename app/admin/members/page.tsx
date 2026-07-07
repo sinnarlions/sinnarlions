@@ -4,8 +4,12 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/src/firebase/config";
-import { canAccessAdmin, isSuperAdmin as checkSuperAdmin, UserData } from "@/src/utils/permissions";
+import { db } from "@/firebase/config";
+import {
+  canAccessAdmin,
+  isSuperAdmin as checkSuperAdmin,
+  UserData,
+} from "@/utils/permissions";
 import MemberViewModal from "@/components/MemberViewModal";
 import MemberEditModal from "@/components/MemberEditModal";
 import MemberAddModal from "@/components/MemberAddModal";

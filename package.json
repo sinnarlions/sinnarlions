@@ -2,16 +2,21 @@
   "name": "celebrate-together",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
+ "scripts": {
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "lint": "next lint"
+},
   "dependencies": {
+    "@react-pdf/renderer": "^4.5.1",
     "firebase": "^12.14.0",
     "firebase-admin": "^14.1.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
+    "lucide-react": "^1.23.0",
     "next": "16.2.7",
+    "pdfmake": "^0.3.11",
     "qrcode.react": "^4.2.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -20,6 +25,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pdfmake": "^0.3.3",
     "@types/qrcode.react": "^1.0.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { db } from "@/src/firebase/config";
+import { db } from "@/firebase/config";
 
 export default function DigitalIDCardPage() {
   const router = useRouter();

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { db } from "@/src/firebase/config";
+import { db } from "@/firebase/config";
 import { QRCodeSVG } from "qrcode.react";
 
 export default function MyProfilePage() {

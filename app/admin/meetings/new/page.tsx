@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { collection, doc, writeBatch, query, where, getDocs, serverTimestamp } from "firebase/firestore";
-import { db } from "@/src/firebase/config";
+import { db } from "../../../../src/firebase/config";
 
 export default function NewMeetingPage() {
   const router = useRouter();

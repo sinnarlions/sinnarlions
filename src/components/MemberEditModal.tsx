@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
-import { db } from "@/src/firebase/config";
-import { LIONS_ROLES } from "@/src/constants/roles";
-import { isSuperAdmin as checkSuperAdmin, UserData } from "@/src/utils/permissions";
+import { db } from "@/firebase/config";
+import { LIONS_ROLES } from "@/constants/roles";
+import { isSuperAdmin as checkSuperAdmin, UserData } from "@/utils/permissions";
 
 interface Member {
   id: string;

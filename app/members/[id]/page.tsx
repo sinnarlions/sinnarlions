@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { collection, getDocs, query, where, limit, doc, getDoc } from "firebase/firestore";
-import { db } from "@/src/firebase/config";
+import { db } from "@/firebase/config";
 
 // तारीख फॉरमॅट फंक्शन
 const formatWithoutYear = (dateString: string) => {

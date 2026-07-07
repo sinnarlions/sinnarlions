@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { doc, getDoc, updateDoc, serverTimestamp, writeBatch } from "firebase/firestore";
-import { db } from "@/src/firebase/config";
+import { db } from "@/firebase/config";
 
 export default function AgendaBuilderPage() {
   const router = useRouter();

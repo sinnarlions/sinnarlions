@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { db } from "../src/firebase/config";
-import AuthGuard from "@/src/components/AuthGuard";
+
 import { useRouter } from "next/navigation";
 import {
   collection,
@@ -14,6 +14,8 @@ import {
   doc,
   onSnapshot,
   updateDoc,
+  orderBy,
+  limit,
 } from "firebase/firestore";
 
 export default function Home() {
@@ -22,14 +24,16 @@ export default function Home() {
       .toLowerCase()
       .replace(/\b\w/g, (c) => c.toUpperCase());
   const router = useRouter();
- 
+  
   const [memberVerified, setMemberVerified] = useState(false);
   const [memberName, setMemberName] = useState("");
   const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [upcomingMeetings, setUpcomingMeetings] = useState<any[]>([]); // नवीन स्टेट
   const [currentRole, setCurrentRole] = useState("");
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [celebrations, setCelebrations] = useState<any[]>([]);
   const [upcomingCelebrations, setUpcomingCelebrations] = useState<any[]>([]);
+  const [selectedAgenda, setSelectedAgenda] = useState<any | null>(null);
 
   useEffect(() => {
     const handlePageShow = () => {
@@ -62,7 +66,6 @@ export default function Home() {
     const userRole = saved.currentLionsRole || "Member";
     setCurrentRole(userRole);
 
-    // --- रिअल-टाइम सेशन व्हॅलिडेशन (onSnapshot) ---
     let unsubscribeSession = () => {};
     
     if (saved && saved.id && saved.sessionId) {
@@ -86,6 +89,8 @@ export default function Home() {
     loadCelebrations();
     loadUpcomingCelebrations();
     loadAnnouncements();
+    loadUpcomingMeeting(); // नवीन फंक्शन कॉल
+    
 
     return () => {
       unsubscribeSession();
@@ -100,6 +105,40 @@ export default function Home() {
       if (data.deleteAfter && data.deleteAfter < today) {
         await deleteDoc(doc(db, "announcements", item.id));
       }
+    }
+  };
+
+  const loadUpcomingMeeting = async () => {
+    try {
+      const q = query(
+        collection(db, "meetings"),
+        where("status", "==", "Upcoming"),
+        orderBy("meetingDate", "asc"),
+        limit(3)
+      );
+      const snapshot = await getDocs(q);
+      const meetings = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setUpcomingMeetings(meetings);
+    } catch (error) {
+      console.error("Error loading meeting:", error);
+    }
+  };
+
+  const fetchAgenda = async (meetingId: string) => {
+    try {
+      const q = query(collection(db, "meetingAgendas"), where("meetingId", "==", meetingId));
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        setSelectedAgenda(snapshot.docs[0].data()); // इथे डेटा सेट होईल
+      } else {
+        alert("या मीटिंगचे विषय उपलब्ध नाहीत.");
+      }
+    } catch (error) {
+      console.error("Error fetching agenda:", error);
     }
   };
 
@@ -196,120 +235,45 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#003B75] flex flex-col antialiased font-sans">
-      
-      {/* हेडर */}
       <header className="py-2.5 px-4 max-w-4xl w-full mx-auto text-white relative flex items-center">
         <div className="absolute left-4">
-          <Image
-            src="/logo.png"
-            alt="Lions Logo"
-            width={44}
-            height={44}
-            className="object-contain"
-          />
+          <Image src="/logo.png" alt="Lions Logo" width={44} height={44} className="object-contain" />
         </div>
-        
         <div className="flex-1 text-center min-w-0">
-          <h1 className="text-xl md:text-2xl font-black text-white uppercase leading-none tracking-tight">
-            Lions Connect
-          </h1>
-          <h2 className="text-[10px] md:text-xs font-black text-[#F2A900] leading-none truncate mt-0.5">
-            Lions Club of Sinnar City
-          </h2>
-          <p className="text-[7px] md:text-[8px] tracking-[0.25em] font-bold text-white/40 uppercase mt-1 leading-none">
-            CONNECT • SERVE • CELEBRATE
-          </p>
+          <h1 className="text-xl md:text-2xl font-black text-white uppercase leading-none tracking-tight">Lions Connect</h1>
+          <h2 className="text-[10px] md:text-xs font-black text-[#F2A900] leading-none truncate mt-0.5">Lions Club of Sinnar City</h2>
         </div>
       </header>
 
-      {/* मुख्य डॅशबोर्ड कंटेनर */}
       <div className="flex-1 bg-[#F8F9FA] rounded-t-none md:rounded-t-[32px] px-4 md:px-12 pt-1.5 pb-6 shadow-inner">
         <div className="max-w-4xl mx-auto space-y-3.5">
           
-          {/* युटिलिटी बार */}
           {memberVerified && (
             <div className="border-b border-gray-200/50 pb-2.5 space-y-2">
-              
               <div className="min-w-0 px-0.5 pt-1">
-                <h3 className="text-xs font-semibold text-[#003B75] truncate leading-none">
-                  {memberName}
-                </h3>
-                {currentRole && (
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5 leading-none">
-                    {currentRole}
-                  </p>
-                )}
+                <h3 className="text-xs font-semibold text-[#003B75] truncate leading-none">{memberName}</h3>
+                {currentRole && <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5 leading-none">{currentRole}</p>}
               </div>
-
-              {/* Compact Buttons Row */}
               <div className="flex items-center justify-between gap-2 pt-0.5">
                 <div className="flex items-center gap-1.5">
                   {(isSuperAdmin || currentRole === "President" || currentRole === "Secretary" || currentRole === "Treasurer") && (
-                    <button
-                      onClick={() => router.push("/admin")}
-                      className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-all"
-                    >
-                      Admin
-                    </button>
+                    <button onClick={() => router.push("/admin")} className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-all">Admin</button>
                   )}
-                  <button
-                    onClick={() => router.push("/members")}
-                    className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-all"
-                  >
-                    Members
-                  </button>
-                  <button
-                    onClick={() => router.push("/my-profile")}
-                    className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-all"
-                  >
-                    My Profile
-                  </button>
+                  <button onClick={() => router.push("/members")} className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-all">Members</button>
+                  <button onClick={() => router.push("/my-profile")} className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-all">My Profile</button>
                 </div>
-                
-                <button 
-                  onClick={async () => { 
-                    const memberStorage = localStorage.getItem("member");
-                    if (memberStorage) {
-                      try {
-                        const savedData = JSON.parse(memberStorage);
-                        if (savedData.id) {
-                          const memberRef = doc(db, "members", savedData.id);
-                          await updateDoc(memberRef, {
-                            isLoggedIn: false,
-                            sessionId: "",
-                          });
-                        }
-                      } catch (error) {
-                        console.error("Logout state update error:", error);
-                      }
-                    }
-                    localStorage.removeItem("member"); 
-                    router.replace("/login"); 
-                  }}
-                  className="bg-[#F2A900]/10 hover:bg-[#F2A900]/20 text-[#d69500] px-2.5 py-1 rounded-md text-[11px] font-black transition-colors"
-                >
-                  Log Out
-                </button>
+                <button onClick={async () => { localStorage.removeItem("member"); router.replace("/login"); }} className="bg-[#F2A900]/10 hover:bg-[#F2A900]/20 text-[#d69500] px-2.5 py-1 rounded-md text-[11px] font-black transition-colors">Log Out</button>
               </div>
-
             </div>
           )}
 
-          {/* SECTION 1: TODAY'S HIGHLIGHTS */}
           <section>
-            <h3 className="mb-1.5 text-[10px] font-black tracking-wider text-[#F2A900] uppercase">
-              Today's Highlights
-            </h3>
+            <h3 className="mb-1.5 text-[10px] font-black tracking-wider text-[#F2A900] uppercase">Today's Highlights</h3>
             {celebrations.length === 0 ? (
               <div className={cardWrapperClass}>
                 <div className="absolute left-0 top-0 bottom-0 w-2 bg-[#F2A900] rounded-l-xl" />
                 <div className="ml-2 bg-amber-50/40 border border-amber-100 rounded-xl p-4 text-center shadow-sm">
-                  <h4 className="text-sm font-bold text-[#003B75] tracking-tight">
-                    ✨ Have a wonderful and productive day ahead!
-                  </h4>
-                  <p className="text-[10px] font-medium text-gray-400 mt-0.5">
-                    No club celebrations scheduled for today
-                  </p>
+                  <h4 className="text-sm font-bold text-[#003B75] tracking-tight">✨ Have a wonderful and productive day ahead!</h4>
                 </div>
               </div>
             ) : (
@@ -317,119 +281,108 @@ export default function Home() {
                 <div key={idx} className={`${cardWrapperClass} cursor-pointer`} onClick={() => router.push(`/celebration/${item.id}`)}>
                   <div className="absolute left-0 top-0 bottom-0 w-2 bg-[#F2A900] rounded-l-xl" />
                   <div className="ml-2 bg-[#003B75] border border-[#002b54] rounded-xl p-4 text-center shadow-md">
-                    <div className="flex justify-center mb-1">
-                      <span className="bg-[#F2A900] text-[#003B75] px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">
-                        🎉 {item.type}
-                      </span>
-                    </div>
-                    <h4 className="text-lg md:text-xl font-bold text-[#F2A900] tracking-tight drop-shadow-sm">
-                      {item.name}
-                    </h4>
-                    <p className="text-[10px] font-bold text-white/80 mt-1.5 flex items-center justify-center gap-1 animate-pulse">
-                      Click to wish <span>✨</span>
-                    </p>
+                    <span className="bg-[#F2A900] text-[#003B75] px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">🎉 {item.type}</span>
+                    <h4 className="text-lg md:text-xl font-bold text-[#F2A900] tracking-tight">{item.name}</h4>
                   </div>
                 </div>
               ))
             )}
           </section>
 
-          {/* SECTION 2: CLUB UPDATES */}
           <section>
-            <h3 className="mb-1.5 text-[10px] font-black tracking-wider text-[#F2A900] uppercase">
-              Club Updates
-            </h3>
-            {announcements.length === 0 ? (
+            <h3 className="mb-1.5 text-[10px] font-black tracking-wider text-[#F2A900] uppercase">Upcoming Meetings</h3>
+            {upcomingMeetings.length === 0 ? (
               <div className={cardWrapperClass}>
                 <div className="absolute left-0 top-0 bottom-0 w-2 bg-[#003B75] rounded-l-xl" />
-                <div className="ml-2 bg-blue-50/40 rounded-xl p-4 border border-blue-100 shadow-sm">
-                  <h4 className="text-xs font-semibold text-blue-500/80 italic">No updates available</h4>
+                <div className="ml-2 bg-white rounded-xl p-4 border border-gray-200 shadow-sm text-center">
+                  <h4 className="text-xs font-semibold text-gray-400 italic">No upcoming meeting scheduled.</h4>
                 </div>
               </div>
             ) : (
-              announcements.map((item) => (
-                <div key={item.id} className={cardWrapperClass}>
-                  <div className="absolute left-0 top-0 bottom-0 w-2 bg-[#003B75] rounded-l-xl" />
-                  <div className="ml-2 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                    <div>
-                      <span className="bg-[#003B75] text-white px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">
-                        📢 {item.type}
-                      </span>
-                      <h4 className="mt-1.5 text-base font-bold text-[#003B75] tracking-tight leading-snug">
-                        {item.title}
+              <>
+                {upcomingMeetings.map((meeting) => (
+                 <div key={meeting.id} className={`${cardWrapperClass} cursor-pointer`} onClick={() => fetchAgenda(meeting.id)}>
+    <div className="absolute left-0 top-0 bottom-0 w-2 bg-[#003B75] rounded-l-xl" />
+                    <div className="ml-2 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                      <h4 className="text-base font-bold text-[#003B75] tracking-tight">
+                        {meeting.meetingTitle}
                       </h4>
-                      
-                      {/* इंग्रजी शब्द (Date, Time, Venue) */}
                       <div className="mt-2 flex flex-col gap-y-0.5 text-[11px] font-bold text-gray-500">
-                        {item.eventDate && (
-                          <span>
-                            Date: <span className="text-gray-700">{new Date(item.eventDate).toLocaleDateString("en-GB", {
-                              day: "numeric", month: "long", year: "numeric",
-                            })}</span>
-                          </span>
-                        )}
-                        {item.eventTime && <span>Time: <span className="text-gray-700">{item.eventTime}</span></span>}
-                        {item.venue && <p>Venue: <span className="text-gray-700">{item.venue}</span></p>}
+                        <span>Date: <span className="text-gray-700">{meeting.meetingDate}</span></span>
+                        <span>Time: <span className="text-gray-700">{meeting.meetingTime}</span></span>
+                        <span>Venue: <span className="text-gray-700">{meeting.venue}</span></span>
+                      </div>
+
+
+                      <p className="mt-3 text-sm font-medium leading-relaxed text-gray-700 whitespace-pre-line border-t border-gray-100 pt-2">
+                        {meeting.announcement}
+                      </p>
+                      <div className="mt-2.5 text-[8px] text-gray-400 font-bold uppercase tracking-wider">
+                        Created By:
+                        <span className="text-gray-700 font-extrabold">
+                          {meeting.createdBy}
+                        </span>
                       </div>
                     </div>
-
-                    {/* मुख्य मजकुराचा फॉन्ट (text-sm आणि text-gray-700) */}
-                    <p className="mt-3 text-sm font-medium leading-relaxed text-gray-700 whitespace-pre-line border-t border-gray-100 pt-2">
-                      {item.message}
-                    </p>
-
-                    <div className="mt-2.5 text-[8px] text-gray-400 font-bold uppercase tracking-wider">
-                      Published By: <span className="text-gray-700 font-extrabold">{item.author}</span>
-                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </>
             )}
           </section>
 
-          {/* SECTION 3: COMING UP THIS WEEK */}
           <section>
-            <h3 className="mb-1.5 text-[10px] font-black tracking-wider text-[#F2A900] uppercase">
-              Coming Up This Week
-            </h3>
-            {upcomingCelebrations.length === 0 ? (
-              <div className={cardWrapperClass}>
-                <div className="absolute left-0 top-0 bottom-0 w-2 bg-slate-400 rounded-l-xl" />
-                <div className="ml-2 bg-slate-50 rounded-xl p-4 text-center border border-slate-200 shadow-sm">
-                  <h4 className="text-xs font-semibold text-slate-500 italic">Nothing scheduled</h4>
+            <h3 className="mb-1.5 text-[10px] font-black tracking-wider text-[#F2A900] uppercase">Club Updates</h3>
+            {announcements.map((item) => (
+              <div key={item.id} className={cardWrapperClass}>
+                <div className="absolute left-0 top-0 bottom-0 w-2 bg-[#003B75] rounded-l-xl" />
+                <div className="ml-2 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <span className="bg-[#003B75] text-white px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">📢 {item.type}</span>
+                  <h4 className="mt-1.5 text-base font-bold text-[#003B75]">{item.title}</h4>
+                  <p className="mt-3 text-sm text-gray-700 whitespace-pre-line border-t border-gray-100 pt-2">{item.message}</p>
                 </div>
               </div>
-            ) : (
-              upcomingCelebrations.slice(0, 3).map((item, idx) => (
-                <div key={idx} className={cardWrapperClass}>
-                  <div className="absolute left-0 top-0 bottom-0 w-2 bg-slate-400 rounded-l-xl" />
-                  <div className="ml-2 bg-white border border-gray-200 rounded-xl p-3.5 text-center shadow-sm">
-                    <div className="flex justify-between items-center mb-0.5">
-                      <span className="rounded bg-slate-100 text-slate-700 border border-slate-200 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider">
-                        {item.type === "Birthday" ? "🎂 Birthday" : "💑 Anniversary"}
-                      </span>
-                      <span className="text-[9px] font-black text-[#003B75] bg-[#003B75]/5 px-1.5 py-0.5 rounded">
-                        In {item.days_left} Days
-                      </span>
-                    </div>
-                    {/* मुख्य मजकूर थोडा फिकट (text-gray-600) केला */}
-                    <h4 className="mt-0.5 text-sm font-semibold text-gray-600 tracking-tight">
-                      {item.name}
-                    </h4>
-                  </div>
-                </div>
-              ))
-            )}
+            ))}
           </section>
 
+          <section>
+            <h3 className="mb-1.5 text-[10px] font-black tracking-wider text-[#F2A900] uppercase">Coming Up This Week</h3>
+            {upcomingCelebrations.slice(0, 3).map((item, idx) => (
+              <div key={idx} className={cardWrapperClass}>
+                <div className="absolute left-0 top-0 bottom-0 w-2 bg-slate-400 rounded-l-xl" />
+                <div className="ml-2 bg-white border border-gray-200 rounded-xl p-3.5 text-center shadow-sm">
+                  <span className="rounded bg-slate-100 text-slate-700 px-1.5 py-0.5 text-[8px] font-bold uppercase">{item.type === "Birthday" ? "🎂 Birthday" : "💑 Anniversary"}</span>
+                  <h4 className="mt-1 text-sm font-semibold text-gray-600">{item.name}</h4>
+                </div>
+              </div>
+            ))}
+          </section>
         </div>
+      {selectedAgenda && (
+  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelectedAgenda(null)}>
+    <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+      <h3 className="text-xl font-black text-[#003B75] mb-4">मीटिंगचे विषय</h3>
+      
+      <div className="space-y-3">
+        {selectedAgenda.items?.map((item: any, i: number) => (
+          <div key={i} className="flex gap-2">
+            <span className="font-bold text-[#003B75]">{item.serial}.</span>
+            <p className="text-gray-700">{item.title}</p>
+          </div>
+        ))}
       </div>
 
-      {/* Footer */}
+      <button 
+        className="mt-6 w-full bg-[#003B75] text-white py-2 rounded-lg font-bold" 
+        onClick={() => setSelectedAgenda(null)}
+      >
+        बंद करा
+      </button>
+    </div>
+  </div>
+)}
+      </div>
       <footer className="bg-[#003B75] py-2.5 text-center border-t border-white/10">
-        <p className="text-white/40 text-[8px] font-bold tracking-[0.4em] uppercase">
-          App Developed By: Jitendra Jagtap
-        </p>
+        <p className="text-white/40 text-[8px] font-bold tracking-[0.4em] uppercase">App Developed By: Jitendra Jagtap</p>
       </footer>
     </main>
   );

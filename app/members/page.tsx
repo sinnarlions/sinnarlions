@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/src/firebase/config";
+import { db } from "@/firebase/config";
 
 export default function MembersPage() {
   const router = useRouter();

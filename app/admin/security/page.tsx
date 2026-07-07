@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { db } from "@/src/firebase/config";
-import { isSuperAdmin as checkSuperAdmin, canAccessAdmin } from "@/src/utils/permissions";
+import { db } from "@/firebase/config";
+import { isSuperAdmin as checkSuperAdmin, canAccessAdmin } from "@/utils/permissions";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 
 export default function SecurityPage() {

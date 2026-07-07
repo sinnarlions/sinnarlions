@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { db } from "@/src/firebase/config";
+import { db } from "@/firebase/config";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 export default function ChangePinPage() {
