@@ -34,7 +34,7 @@ export default function AdminPage() {
 
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
-  const [type, setType] = useState("Meeting");
+  const [type, setType] = useState("Notice");
   const [author, setAuthor] = useState("President");
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
@@ -102,7 +102,7 @@ export default function AdminPage() {
   const clearForm = () => {
     setTitle("");
     setMessage("");
-    setType("Meeting");
+    setType("Notice");
     setAuthor(isSuperAdmin ? "President" : currentRole);
     setEventDate("");
     setEventTime("");
@@ -166,7 +166,7 @@ export default function AdminPage() {
     setEditingId(item.id);
     setTitle(item.title || "");
     setMessage(item.message || "");
-    setType(item.type || "Meeting");
+    setType(item.type || "Notice");
     setAuthor(item.author || "President");
     setEventDate(item.eventDate || "");
     setEventTime(item.eventTime || "");
@@ -180,8 +180,7 @@ export default function AdminPage() {
 
   const getCardBgClass = (cardType: string) => {
     switch (cardType) {
-      case "Meeting":
-        return "bg-blue-50/60 border-blue-200/70";
+      
       case "Activity":
         return "bg-amber-50/50 border-amber-200/60";
       case "Emergency":
@@ -259,7 +258,7 @@ export default function AdminPage() {
                   onChange={(e) => setType(e.target.value)}
                   className="w-full rounded-xl border border-gray-200 p-2.5 text-sm font-bold text-gray-700 focus:outline-none focus:border-[#003B75] bg-gray-50/50 transition-colors cursor-pointer"
                 >
-                  <option>Meeting</option>
+                  
                   <option>Activity</option>
                   <option>Notice</option>
                   <option>Emergency</option>
