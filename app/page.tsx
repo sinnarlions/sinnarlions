@@ -368,57 +368,63 @@ const loadUpcomingMeeting = async () => {
             )}
           </section>
 
-{/* UPCOMING MEETING */}
-<section>
+{/* UPCOMING MEETING */}<section>
   {!upcomingMeeting ? (
-    <div className="relative bg-[#454545] rounded-[35px] w-full overflow-hidden">
-      <div className="ml-[18px] bg-[#EEF6FF] rounded-[35px] p-10 min-h-[220px] flex flex-col justify-center">
-        <h3 className="text-xs uppercase tracking-[0.2em] font-black text-black/30 mb-2">
-          Upcoming Meeting
-        </h3>
+    <div className="bg-[#EEF6FF] rounded-2xl p-6 min-h-[110px] flex flex-col justify-center shadow-sm">
+      <h3 className="text-xs uppercase tracking-[0.2em] font-bold text-gray-500 mb-2">
+        Upcoming Meeting
+      </h3>
 
-        <h4 className="text-2xl font-serif text-[#622A1E]/30 italic">
-          No Upcoming Meeting
-        </h4>
-      </div>
+      <h4 className="text-xl font-bold text-gray-400">
+        No Upcoming Meeting
+      </h4>
     </div>
- ) : (
+  ) : (
     <div
-      className="relative bg-[#454545] rounded-[35px] w-full overflow-hidden cursor-pointer"
-      onClick={() => router.push(`/admin/meetings/${upcomingMeeting.id}/view`)}
+      onClick={() => router.push(`/meeting/${upcomingMeeting.id}`)}
+      className="bg-[#EEF6FF] rounded-2xl p-6 min-h-[125px] cursor-pointer shadow border border-gray-200 hover:shadow-md transition-all"
     >
-      <div className="ml-[18px] bg-[#EEF6FF] rounded-[35px] p-10 md:p-14 min-h-[220px] flex flex-col justify-between">
+      <div className="flex justify-between items-start">
 
-        <div className="flex justify-between items-start">
-          <h3 className="text-xs uppercase tracking-[0.2em] font-black text-black/40">
+        <div>
+          <h3 className="text-xs uppercase tracking-[0.2em] font-bold text-gray-500">
             Upcoming Meeting
           </h3>
 
-          <span className="text-blue-700 font-black text-lg">
-            📅 Meeting
-          </span>
+          <h4 className="text-1.5xl font-bold text-[#003B75] mt-2">
+            {upcomingMeeting.meetingTitle}
+          </h4>
+
+          <div className="flex flex-wrap gap-5 text-sm text-gray-600 font-medium mt-4">
+            <span>
+              📅{" "}
+              {new Date(upcomingMeeting.meetingDate).toLocaleDateString(
+                "en-GB",
+                {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }
+              )}
+            </span>
+
+            <span>
+              🕒{" "}
+              {new Date(
+                `2000-01-01T${upcomingMeeting.meetingTime}`
+              ).toLocaleTimeString("en-IN", {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              })}
+            </span>
+
+            <span>📍 {upcomingMeeting.venue}</span>
+          </div>
         </div>
 
-        <h4 className="text-2xl md:text-1xl font-serif font-bold text-[#622A1E] leading-snug">
-          {upcomingMeeting.meetingTitle}
-        </h4>
-
-        <div className="flex flex-wrap gap-4 text-[#622A1E]/70 font-bold text-sm mt-4">
-          <span>
-            📅 {new Date(upcomingMeeting.meetingDate).toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })}
-          </span>
-
-          <span>
-            🕒 {upcomingMeeting.meetingTime}
-          </span>
-
-          <span>
-            📍 {upcomingMeeting.venue}
-          </span>
+        <div className="text-3xl text-[#003B75] font-light">
+          →
         </div>
 
       </div>
