@@ -3,14 +3,20 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/src/firebase/config";
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
 
+import { db } from "@/src/firebase/config";
 import { Meeting } from "@/src/types/meeting";
 
 export default function MeetingsPage() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState("");
 
   useEffect(() => {
     loadMeetings();
@@ -25,156 +31,296 @@ export default function MeetingsPage() {
         ...(doc.data() as Omit<Meeting, "id">),
       }));
 
-     data.sort(
-  (a, b) =>
-    new Date(a.meetingDate).getTime() -
-    new Date(b.meetingDate).getTime()
-);
+      data.sort(
+        (a, b) =>
+          new Date(a.meetingDate).getTime() -
+          new Date(b.meetingDate).getTime()
+      );
 
       setMeetings(data);
     } catch (error) {
-      console.error("Error loading meetings:", error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
+  const formatTime = (time: string) => {
+    return new Date(`2000-01-01T${time}`).toLocaleTimeString(
+      "en-IN",
+      {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }
+    );
+  };
+
+  const deleteMeeting = async (meetingId: string) => {
+    const ok = confirm(
+      "Delete this meeting?\n\nAgenda will also be deleted."
+    );
+
+    if (!ok) return;
+
+    try {
+      setDeletingId(meetingId);
+
+      await deleteDoc(doc(db, "meetings", meetingId));
+
+      await deleteDoc(doc(db, "meetingAgendas", meetingId));
+
+      setMeetings((prev) =>
+        prev.filter((m) => m.id !== meetingId)
+      );
+
+      alert("Meeting deleted.");
+
+    } catch (error) {
+      console.error(error);
+      alert("Unable to delete meeting.");
+    } finally {
+      setDeletingId("");
+    }
+  };
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <main className="min-h-screen bg-[#F8F9FA] p-4 md:p-8">
 
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">
-          📅 Meetings Management
-        </h1>
+      <div className="max-w-6xl mx-auto">
 
-        <Link
-          href="/admin/meetings/new"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-        >
-          + New Meeting
-        </Link>
-      </div>
+        <div className="flex items-center justify-between mb-6">
 
-      {loading ? (
-        <div className="bg-white rounded-xl shadow p-10 text-center">
-          <p className="text-lg text-gray-600">
-            Loading meetings...
-          </p>
-        </div>
-      ) : meetings.length === 0 ? (
-        <div className="bg-white rounded-xl shadow p-10 text-center">
+          <div>
 
-          <div className="text-6xl mb-4">
-            📅
+            <Link
+              href="/admin"
+              className="text-[#003B75] font-bold text-sm"
+            >
+              ← Back
+            </Link>
+
+            <h1 className="text-2xl md:text-3xl font-bold mt-2 text-[#003B75]">
+              Meetings Management
+            </h1>
+
           </div>
 
-          <h2 className="text-2xl font-semibold mb-2">
-            No Meetings Found
-          </h2>
-
-          <p className="text-gray-500 mb-6">
-            No meetings have been created yet.
-          </p>
-
           <Link
-            href="/admin"
-            className="inline-block bg-blue-600 text-white px-5 py-2 rounded-lg"
+            href="/admin/meetings/new"
+            className="bg-[#003B75] hover:bg-[#00529B] text-white px-4 py-3 rounded-xl font-bold"
           >
-            ← Back to Admin
+            + New Meeting
           </Link>
 
         </div>
-      ) : (
-        <div className="bg-white rounded-xl shadow overflow-hidden">
 
-          <table className="w-full">
+        {loading ? (
+          <div className="bg-white rounded-2xl p-10 text-center shadow">
+            Loading meetings...
+          </div>
+        ) : meetings.length === 0 ? (
+          <div className="bg-white rounded-2xl p-10 text-center shadow">
 
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="text-left p-4">Title</th>
-                <th className="text-left p-4">Date</th>
-                <th className="text-left p-4">Time</th>
-                <th className="text-left p-4">Venue</th>
-                <th className="text-left p-4">Status</th>
-                <th className="text-center p-4">Actions</th>
-              </tr>
-            </thead>
+            <div className="text-6xl mb-4">
+              📅
+            </div>
 
-            <tbody>
+            <h2 className="text-2xl font-bold">
+              No Meetings Found
+            </h2>
+
+            <p className="text-gray-500 mt-2">
+              No meetings have been created yet.
+            </p>
+
+          </div>
+        ) : (
+                    <>
+            {/* Mobile View */}
+            <div className="grid gap-4 md:hidden">
               {meetings.map((meeting) => (
-                <tr
+                <div
                   key={meeting.id}
-                  className="border-t"
+                  className="bg-white rounded-2xl shadow border border-gray-100 p-5"
                 >
-                  <td className="p-4 font-medium">
+                  <h2 className="text-lg font-bold text-[#003B75]">
                     {meeting.meetingTitle}
-                  </td>
+                  </h2>
 
-             <td className="p-4 whitespace-nowrap">
-  {new Date(meeting.meetingDate).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  })}
-</td>
-                  <td className="p-4">
-                    {meeting.meetingTime}
-                  </td>
+                  <div className="mt-4 space-y-2 text-sm text-gray-700">
 
-                  <td className="p-4">
-                    {meeting.venue}
-                  </td>
+                    <div>
+                      📅{" "}
+                      {new Date(meeting.meetingDate).toLocaleDateString(
+                        "en-GB",
+                        {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        }
+                      )}
+                    </div>
 
-                  <td className="p-4">
-  <span
-    className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium
-      ${
-        meeting.status === "Upcoming"
-          ? "bg-green-100 text-green-700"
-          : meeting.status === "Completed"
-          ? "bg-gray-200 text-gray-700"
-          : "bg-red-100 text-red-700"
-      }`}
-  >
-    <span>
-      {meeting.status === "Upcoming"
-        ? "🟢"
-        : meeting.status === "Completed"
-        ? "⚪"
-        : "🔴"}
-    </span>
+                    <div>
+                      🕒 {formatTime(meeting.meetingTime)}
+                    </div>
 
-    {meeting.status}
-  </span>
-</td>
-                <td className="p-4 text-center space-x-2">
+                    <div>
+                      📍 {meeting.venue}
+                    </div>
 
-  <Link
-    href={`/admin/meetings/${meeting.id}/view`}
-    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm"
-  >
-    👁 View
-  </Link>
+                    <div className="pt-2">
+                      <span
+                        className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
+                          meeting.status === "Upcoming"
+                            ? "bg-green-100 text-green-700"
+                            : meeting.status === "Completed"
+                            ? "bg-gray-200 text-gray-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {meeting.status}
+                      </span>
+                    </div>
+                  </div>
 
-  <Link
-    href={`/admin/meetings/${meeting.id}/edit`}
-    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg text-sm"
-  >
-    ✏ Edit
-  </Link>
+                  <div className="flex gap-2 mt-5">
 
- 
+                    <Link
+                      href={`/admin/meetings/${meeting.id}/view`}
+                      className="flex-1 bg-blue-600 text-white text-center py-2 rounded-lg text-sm font-semibold"
+                    >
+                      👁 View
+                    </Link>
 
-</td>
-                </tr>
+                    <Link
+                      href={`/admin/meetings/${meeting.id}/edit`}
+                      className="flex-1 bg-yellow-500 text-white text-center py-2 rounded-lg text-sm font-semibold"
+                    >
+                      ✏ Edit
+                    </Link>
+
+                    <button
+                      onClick={() => {
+  if (meeting.id) {
+    deleteMeeting(meeting.id);
+  }
+}}
+                      disabled={meeting.id ? deletingId === meeting.id : true}
+                      className="bg-red-600 text-white px-4 rounded-lg text-sm font-semibold disabled:bg-gray-400"
+                    >
+                      🗑
+                    </button>
+
+                  </div>
+                </div>
               ))}
-            </tbody>
+            </div>
 
-          </table>
+            {/* Desktop View */}
+            <div className="hidden md:block bg-white rounded-2xl shadow overflow-hidden">
 
-        </div>
-      )}
+              <table className="w-full">
 
-    </div>
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="text-left p-4">Title</th>
+                    <th className="text-left p-4">Date</th>
+                    <th className="text-left p-4">Time</th>
+                    <th className="text-left p-4">Venue</th>
+                    <th className="text-left p-4">Status</th>
+                    <th className="text-center p-4">Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {meetings.map((meeting) => (
+                    <tr
+                      key={meeting.id}
+                      className="border-t hover:bg-gray-50"
+                    >
+                      <td className="p-4 font-medium">
+                        {meeting.meetingTitle}
+                      </td>
+
+                      <td className="p-4 whitespace-nowrap">
+                        {new Date(meeting.meetingDate).toLocaleDateString(
+                          "en-GB",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          }
+                        )}
+                      </td>
+
+                      <td className="p-4">
+                        {formatTime(meeting.meetingTime)}
+                      </td>
+
+                      <td className="p-4">
+                        {meeting.venue}
+                      </td>
+
+                      <td className="p-4">
+                        <span
+                          className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
+                            meeting.status === "Upcoming"
+                              ? "bg-green-100 text-green-700"
+                              : meeting.status === "Completed"
+                              ? "bg-gray-200 text-gray-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {meeting.status}
+                        </span>
+                      </td>
+
+                      <td className="p-4">
+                        <div className="flex justify-center gap-2">
+
+                          <Link
+                            href={`/admin/meetings/${meeting.id}/view`}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm"
+                          >
+                            👁 View
+                          </Link>
+
+                          <Link
+                            href={`/admin/meetings/${meeting.id}/edit`}
+                            className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-sm"
+                          >
+                            ✏ Edit
+                          </Link>
+
+                          <button
+                            onClick={() => {
+  if (meeting.id) {
+    deleteMeeting(meeting.id);
+  }
+}}
+                            disabled={meeting.id ? deletingId === meeting.id : true}
+                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm disabled:bg-gray-400"
+                          >
+                            🗑 Delete
+                          </button>
+
+                        </div>
+                      </td>
+
+                    </tr>
+                  ))}
+                </tbody>
+
+              </table>
+
+            </div>
+          </>
+        )}
+
+      </div>
+
+    </main>
   );
 }

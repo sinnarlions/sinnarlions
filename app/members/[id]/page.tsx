@@ -8,19 +8,25 @@ import { db } from "@/src/firebase/config";
 // तारीख फॉरमॅट फंक्शन
 const formatWithoutYear = (dateString: string) => {
   if (!dateString || dateString === "-") return "-";
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  let cleanString = dateString.replace(/\b\d{4}\b/g, '').trim();
-  const parts = cleanString.split(/[-./]/);
-  if (parts.length >= 2) {
-    const day = parseInt(parts[0].trim(), 10);
-    const monthIndex = parseInt(parts[1].trim(), 10) - 1;
-    if (!isNaN(day) && !isNaN(monthIndex) && monthIndex >= 0 && monthIndex < 12) {
-      return `${day} ${months[monthIndex]}`;
+
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  ];
+
+  const parts = dateString.split(".");
+
+  if (parts.length === 3) {
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+
+    if (!isNaN(day) && month >= 1 && month <= 12) {
+      return `${day} ${months[month - 1]}`;
     }
   }
-  return cleanString || "-";
-};
 
+  return dateString;
+};
 export default function MemberProfilePage() {
   const router = useRouter();
   const params = useParams();
@@ -137,9 +143,24 @@ export default function MemberProfilePage() {
           <h3 className="mb-4 text-xs font-bold text-[#00529B] uppercase tracking-wider">Personal Information</h3>
           <div className="space-y-4">
             <div><p className="text-[11px] font-bold text-gray-400 uppercase">Mobile</p><p className="font-semibold text-sm text-gray-800">{member.mobile || "-"}</p></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><p className="text-[11px] font-bold text-gray-400 uppercase">Email</p><p className="font-semibold text-sm text-gray-800">{member.email || "-"}</p></div>
-              <div><p className="text-[11px] font-bold text-gray-400 uppercase">Birthday</p><p className="font-semibold text-sm text-gray-800">{formatWithoutYear(member.dob || "-")}</p></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+  <p className="text-[11px] font-bold text-gray-400 uppercase">
+    Email
+  </p>
+  <p className="font-semibold text-sm text-gray-800 break-all">
+    {member.email || "-"}
+  </p>
+</div>
+
+<div>
+  <p className="text-[11px] font-bold text-gray-400 uppercase">
+    Birthday
+  </p>
+  <p className="font-semibold text-sm text-gray-800">
+    {formatWithoutYear(member.dob || "-")}
+  </p>
+</div>
             </div>
             <div><p className="text-[11px] font-bold text-gray-400 uppercase">Address</p><p className="font-semibold text-sm text-gray-800">{member.address || "-"}</p></div>
           </div>
@@ -155,15 +176,41 @@ export default function MemberProfilePage() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
-          <h3 className="mb-4 text-xs font-bold text-[#00529B] uppercase tracking-wider">Family Information</h3>
-          <div className="space-y-4">
-            <div><p className="text-[11px] font-bold text-gray-400 uppercase">Spouse</p><p className="font-semibold text-sm text-gray-800">{member.spouseName || "-"}</p></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><p className="text-[11px] font-bold text-gray-400 uppercase">Anniversary</p><p className="font-semibold text-sm text-gray-800">{formatWithoutYear(member.anniversary || "-")}</p></div>
-              <div><p className="text-[11px] font-bold text-gray-400 uppercase">Spouse B'day</p><p className="font-semibold text-sm text-gray-800">{formatWithoutYear(member.spouseDob || "-")}</p></div>
-            </div>
-          </div>
-        </div>
+  <h3 className="mb-4 text-xs font-bold text-[#00529B] uppercase tracking-wider">
+    Family Information
+  </h3>
+
+  <div className="space-y-4">
+
+    <div>
+      <p className="text-[11px] font-bold text-gray-400 uppercase">
+        Spouse Name
+      </p>
+      <p className="font-semibold text-sm text-gray-800">
+        {member.spouseName || "-"}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-[11px] font-bold text-gray-400 uppercase">
+        Children
+      </p>
+      <p className="font-semibold text-sm text-gray-800 whitespace-pre-wrap">
+    {member.childrenNames || "-"}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-[11px] font-bold text-gray-400 uppercase">
+        Anniversary
+      </p>
+      <p className="font-semibold text-sm text-gray-800">
+        {formatWithoutYear(member.anniversary || "-")}
+      </p>
+    </div>
+
+  </div>
+</div>
       </div>
     </main>
   );

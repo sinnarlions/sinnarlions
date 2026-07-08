@@ -64,6 +64,8 @@ export default function AdminPage() {
     setCanPublish(canPublishAnnouncement(user));
     setCanEdit(canEditAnnouncement(user));
     setCanDelete(canDeleteAnnouncement(user));
+
+
     setIsSuperAdmin(superAdminStatus);
     setCurrentRole(user.currentLionsRole || "");
 

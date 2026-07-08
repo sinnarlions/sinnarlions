@@ -15,6 +15,34 @@ export default function MemberMeetingPage() {
   const [agenda, setAgenda] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+const formatDate = (date: string) => {
+  if (!date) return "";
+
+  const d = new Date(date);
+
+  return d.toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const formatTime = (time: string) => {
+  if (!time) return "";
+
+  const [hour, minute] = time.split(":");
+
+  const d = new Date();
+  d.setHours(Number(hour));
+  d.setMinutes(Number(minute));
+
+  return d.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
+
   useEffect(() => {
     loadMeeting();
   }, []);
@@ -60,7 +88,7 @@ export default function MemberMeetingPage() {
     return (
     <div className="max-w-3xl mx-auto px-4 py-8">
 
-      <div className="bg-[#003B75] rounded-3xl p-8 text-white shadow-lg mb-6">
+      <div className="bg-[#003B75] rounded-3xl p-5 text-white shadow-lg mb-4">
 
         <div className="flex justify-between items-start">
 
@@ -70,27 +98,17 @@ export default function MemberMeetingPage() {
               Upcoming Meeting
             </p>
 
-            <h1 className="text-3xl font-bold mt-2">
+            <h1 className="text-xl font-bold mt-1">
               {meeting.meetingTitle}
             </h1>
 
-            <div className="flex gap-3 mt-5 flex-wrap">
-
-              <span className="bg-white/20 px-4 py-2 rounded-full text-sm">
-                📅 {meeting.meetingDate}
-              </span>
-
-              <span className="bg-white/20 px-4 py-2 rounded-full text-sm">
-                🕒 {meeting.meetingTime}
-              </span>
-
-            </div>
+            
 
           </div>
 
           <Link
             href="/"
-            className="bg-white text-[#003B75] px-4 py-2 rounded-xl font-bold"
+            className="bg-white text-[#003B75] px-3 py-1 rounded-lg text-sm font-bold"
           >
             ← Home
           </Link>
@@ -99,59 +117,49 @@ export default function MemberMeetingPage() {
 
       </div>
 
-      <div className="bg-white rounded-3xl shadow-lg p-8 space-y-8">
+      <div className="bg-white rounded-3xl shadow-lg p-4 space-y-4">
 
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-2 gap-2">
 
-          <div className="bg-[#F8F9FA] rounded-2xl p-4">
-            <p className="text-xs uppercase text-gray-500 font-bold mb-2">Meeting Type</p>
-            <p className="font-semibold text-[#003B75]">{meeting.meetingType}</p>
+          <div className="bg-[#F8F9FA] rounded-xl px-3 py-2">
+            <p className="text-[10px] uppercase text-gray-500 font-bold mb-0">Meeting Type</p>
+            <p className="font-semibold text-sm text-[#003B75]">{meeting.meetingType}</p>
           </div>
 
-          <div className="bg-[#F8F9FA] rounded-2xl p-4">
-            <p className="text-xs uppercase text-gray-500 font-bold mb-2">Status</p>
-            <p className="font-semibold text-[#003B75]">{meeting.status}</p>
+          <div className="bg-[#F8F9FA] rounded-xl px-3 py-2">
+            <p className="text-[10px] uppercase text-gray-500 font-bold mb-0">Status</p>
+            <p className="font-semibold text-sm text-[#003B75]">{meeting.status}</p>
           </div>
 
-          <div className="bg-[#F8F9FA] rounded-2xl p-4">
-            <p className="text-xs uppercase text-gray-500 font-bold mb-2">Date</p>
-            <p className="font-semibold text-[#003B75]">{meeting.meetingDate}</p>
+          <div className="bg-[#F8F9FA] rounded-xl px-3 py-2">
+            <p className="text-[10px] uppercase text-gray-500 font-bold mb-0">Date</p>
+            <p className="font-semibold text-sm text-[#003B75]">{formatDate(meeting.meetingDate)}</p>
           </div>
 
-          <div className="bg-[#F8F9FA] rounded-2xl p-4">
-            <p className="text-xs uppercase text-gray-500 font-bold mb-2">Time</p>
-            <p className="font-semibold text-[#003B75]">{meeting.meetingTime}</p>
+          <div className="bg-[#F8F9FA] rounded-xl px-3 py-2">
+            <p className="text-[10px] uppercase text-gray-500 font-bold mb-0">Time</p>
+            <p className="font-semibold text-sm text-[#003B75]">{formatTime(meeting.meetingTime)}</p>
           </div>
 
-          <div className="bg-[#F8F9FA] rounded-2xl p-4">
-            <p className="text-xs uppercase text-gray-500 font-bold mb-2">Venue</p>
-            <p className="font-semibold text-[#003B75]">{meeting.venue}</p>
+          <div className="bg-[#F8F9FA] rounded-xl px-3 py-2">
+            <p className="text-[10px] uppercase text-gray-500 font-bold mb-0">Venue</p>
+            <p className="font-semibold text-sm text-[#003B75]">{meeting.venue}</p>
           </div>
 
-          <div className="bg-[#F8F9FA] rounded-2xl p-4">
-            <p className="text-xs uppercase text-gray-500 font-bold mb-2">Created By</p>
-            <p className="font-semibold text-[#003B75]">{meeting.createdBy}</p>
+          <div className="bg-[#F8F9FA] rounded-xl px-3 py-2">
+            <p className="text-[10px] uppercase text-gray-500 font-bold mb-0">Created By</p>
+            <p className="font-semibold text-sm text-[#003B75]">{meeting.createdBy}</p>
           </div>
 
         </div>
 
-        <div>
-
-          <h2 className="text-lg font-bold text-[#003B75] mb-4 flex items-center gap-2">
-            📢 Secretary's Message
-          </h2>
-
-          <p className="whitespace-pre-wrap leading-8 text-gray-700">
-            {meeting.announcement}
-          </p>
-
-        </div>
+       
 
       </div>
 
-      <div className="bg-white rounded-3xl shadow-lg p-6 mt-6">
+      <div className="bg-white rounded-3xl shadow-lg p-4 mt-4">
 
-        <h2 className="text-lg font-bold text-[#003B75] mb-5 flex items-center gap-2">
+        <h2 className="text-base font-bold text-[#003B75] mb-3 flex items-center gap-2">
           📋 Meeting Agenda
         </h2>
 
@@ -161,23 +169,23 @@ export default function MemberMeetingPage() {
 
             <div
               key={index}
-              className="bg-white px-5 py-4 border-b last:border-b-0"
+              className="bg-white px-3 py-2 border-b last:border-b-0"
             >
 
-              <div className="flex gap-3 items-start">
+              <div className="flex gap-2 items-start">
 
-                <div className="font-bold text-[#003B75] text-lg shrink-0">
+                <div className="font-bold text-[#003B75] text-sm shrink-0">
                   {item.serial}.
                 </div>
 
-                <div className="font-semibold text-[#003B75] text-lg">
+                <div className="font-semibold text-sm text-[#003B75] text-sm">
                   {item.title}
                 </div>
 
               </div>
 
               {item.notes && (
-                <div className="ml-6 mt-2 text-gray-600 whitespace-pre-wrap">
+                <div className="ml-5 mt-1 text-gray-600 whitespace-pre-wrap">
                   {item.notes}
                 </div>
               )}
@@ -187,7 +195,29 @@ export default function MemberMeetingPage() {
           ))}
 
         </div>
+<div className="bg-white rounded-3xl shadow-lg p-4 mt-4">
 
+  <h2 className="text-base font-bold text-[#003B75] mb-3 flex items-center gap-2">
+    📢 Secretary's Message
+  </h2>
+
+  <p className="whitespace-pre-wrap leading-7 text-gray-700 text-sm">
+    {meeting.announcement}
+  </p>
+
+  <div className="mt-4 pt-3 border-t border-gray-200">
+
+    <p className="text-xs text-gray-500">
+      Secretary
+    </p>
+
+    <p className="font-semibold text-[#003B75] text-sm">
+      {meeting.createdBy}
+    </p>
+
+  </div>
+
+</div>
       </div>
 
     </div>
