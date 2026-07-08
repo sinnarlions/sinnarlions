@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "@/src/firebase/config"; // Standardized absolute path
-
+import Link from "next/link";
 
 
 // Consolidated permission imports using absolute paths
@@ -483,6 +483,32 @@ export default function AdminPage() {
             </div>
           )}
         </div>
+
+{/* Secretary Tools */}
+{currentRole === "Secretary" && (
+  <>
+    <h2 className="text-xl font-bold text-gray-800 mt-10 mb-4">
+      Secretary Tools
+    </h2>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <Link
+        href="/admin/meetings"
+        className="bg-white rounded-xl shadow p-6 hover:shadow-lg transition"
+      >
+        <div className="text-4xl mb-3">📅</div>
+
+        <h3 className="text-lg font-bold">
+          Meetings Management
+        </h3>
+
+        <p className="text-gray-600 text-sm mt-2">
+          Create and manage club meetings.
+        </p>
+      </Link>
+    </div>
+  </>
+)}
 
 {/* ================= SUPER ADMIN TOOLS ================= */}
 {isSuperAdmin && (

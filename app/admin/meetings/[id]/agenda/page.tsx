@@ -5,6 +5,14 @@ import { useRouter, useParams } from "next/navigation";
 import { doc, getDoc, updateDoc, serverTimestamp, writeBatch } from "firebase/firestore";
 import { db } from "@/src/firebase/config";
 
+interface Meeting {
+  meetingTitle: string;
+  meetingDate: string;
+  meetingTime: string;
+  venue: string;
+  createdBy: string;
+  status: string;
+}
 export default function AgendaBuilderPage() {
   const router = useRouter();
   const { id } = useParams() as { id: string };

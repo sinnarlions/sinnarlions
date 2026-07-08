@@ -30,6 +30,7 @@ export default function Home() {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [celebrations, setCelebrations] = useState<any[]>([]);
   const [upcomingCelebrations, setUpcomingCelebrations] = useState<any[]>([]);
+  const [upcomingMeeting, setUpcomingMeeting] = useState<any>(null);
 
   useEffect(() => {
     const handlePageShow = () => {
@@ -91,6 +92,7 @@ if (saved && saved.id && saved.sessionId && !saved.isSuperAdmin) {
     cleanupExpiredAnnouncements();
     loadCelebrations();
     loadUpcomingCelebrations();
+    loadUpcomingMeeting();
     loadAnnouncements();
 
     return () => {
@@ -199,7 +201,31 @@ if (saved && saved.id && saved.sessionId && !saved.isSuperAdmin) {
   };
 
   const cardWrapperClass = "relative w-full mb-3.5 transition-all duration-200 active:scale-[0.99]";
+const loadUpcomingMeeting = async () => {
+  const snapshot = await getDocs(collection(db, "meetings"));
 
+  const today = new Date();
+
+  const meetings = snapshot.docs
+    .map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+    .filter((meeting: any) => {
+      return (
+        meeting.status === "Upcoming" &&
+        new Date(meeting.meetingDate) >= today
+      );
+    })
+    .sort((a: any, b: any) =>
+      new Date(a.meetingDate).getTime() -
+      new Date(b.meetingDate).getTime()
+    );
+
+  if (meetings.length > 0) {
+    setUpcomingMeeting(meetings[0]);
+  }
+};
   return (
     <main className="min-h-screen bg-[#003B75] flex flex-col antialiased font-sans">
       
@@ -341,6 +367,64 @@ if (saved && saved.id && saved.sessionId && !saved.isSuperAdmin) {
               ))
             )}
           </section>
+
+{/* UPCOMING MEETING */}
+<section>
+  {!upcomingMeeting ? (
+    <div className="relative bg-[#454545] rounded-[35px] w-full overflow-hidden">
+      <div className="ml-[18px] bg-[#EEF6FF] rounded-[35px] p-10 min-h-[220px] flex flex-col justify-center">
+        <h3 className="text-xs uppercase tracking-[0.2em] font-black text-black/30 mb-2">
+          Upcoming Meeting
+        </h3>
+
+        <h4 className="text-2xl font-serif text-[#622A1E]/30 italic">
+          No Upcoming Meeting
+        </h4>
+      </div>
+    </div>
+ ) : (
+    <div
+      className="relative bg-[#454545] rounded-[35px] w-full overflow-hidden cursor-pointer"
+      onClick={() => router.push(`/admin/meetings/${upcomingMeeting.id}/view`)}
+    >
+      <div className="ml-[18px] bg-[#EEF6FF] rounded-[35px] p-10 md:p-14 min-h-[220px] flex flex-col justify-between">
+
+        <div className="flex justify-between items-start">
+          <h3 className="text-xs uppercase tracking-[0.2em] font-black text-black/40">
+            Upcoming Meeting
+          </h3>
+
+          <span className="text-blue-700 font-black text-lg">
+            📅 Meeting
+          </span>
+        </div>
+
+        <h4 className="text-2xl md:text-1xl font-serif font-bold text-[#622A1E] leading-snug">
+          {upcomingMeeting.meetingTitle}
+        </h4>
+
+        <div className="flex flex-wrap gap-4 text-[#622A1E]/70 font-bold text-sm mt-4">
+          <span>
+            📅 {new Date(upcomingMeeting.meetingDate).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })}
+          </span>
+
+          <span>
+            🕒 {upcomingMeeting.meetingTime}
+          </span>
+
+          <span>
+            📍 {upcomingMeeting.venue}
+          </span>
+        </div>
+
+      </div>
+    </div>
+  )}
+</section>
 
           {/* SECTION 2: CLUB UPDATES */}
           <section>

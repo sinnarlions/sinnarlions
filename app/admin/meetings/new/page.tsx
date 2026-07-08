@@ -3,7 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { collection, doc, writeBatch, query, where, getDocs, serverTimestamp } from "firebase/firestore";
+
 import { db } from "@/src/firebase/config";
+
+
+
 
 export default function NewMeetingPage() {
   const router = useRouter();
@@ -14,7 +18,8 @@ export default function NewMeetingPage() {
     meetingDate: "",
     meetingTime: "",
     venue: "",
-    announcement: "प्रिय सदस्यहो,\n\nआपण सर्वांनी सभेस वेळेवर उपस्थित राहावे ही विनंती.\n\nधन्यवाद.\nसचिव",
+    announcement: "प्रिय लायन सदस्य,\n\nआपण सर्वांनी सभेस वेळेवर उपस्थित राहून सभेचे कामकाज यशस्वी करण्यासाठी सहकार्य करावे, ही नम्र विनंती.\n\nधन्यवाद.\n\nसचिव",
+
   });
 
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -92,7 +97,11 @@ export default function NewMeetingPage() {
 
       await batch.commit();
       alert("Meeting created successfully.");
-      router.push(`/admin/meetings/${meetingRef.id}/agenda`);
+
+      
+
+      router.push(`/admin/meetings/${meetingRef.id}/edit`);
+
     } catch (error) {
       console.error(error);
       alert("Error creating meeting.");
