@@ -274,65 +274,28 @@ const loadUpcomingMeeting = async () => {
               </div>
 
               {/* Compact Buttons Row */}
-              <div className="flex items-center justify-between gap-2 pt-0.5">
-                <div className="flex items-center gap-1.5">
-                  {(isSuperAdmin || currentRole === "President" || currentRole === "Secretary" || currentRole === "Treasurer") && (
-                    <button
-                      onClick={() => router.push("/admin")}
-                      className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-all"
-                    >
-                      Admin
-                    </button>
-                  )}
-                 <button
-  onClick={() => router.push("/members")}
-  className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-all"
->
-  Members
-</button>
-
-<button
-  onClick={() => router.push("/club")}
-  className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-all"
->
-  Club
-</button>
-
-<button
-  onClick={() => router.push("/my-profile")}
-  className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-all"
->
-  My Profile
-</button>
-                </div>
-                
-                <button 
-                  onClick={async () => { 
-                    const memberStorage = localStorage.getItem("member");
-                    if (memberStorage) {
-                      try {
-                        const savedData = JSON.parse(memberStorage);
-                        if (savedData.id) {
-                          const memberRef = doc(db, "members", savedData.id);
-                          if (!savedData.isSuperAdmin) {
-  await updateDoc(memberRef, {
-    isLoggedIn: false,
-    sessionId: "",
-  });
-}
-                        }
-                      } catch (error) {
-                        console.error("Logout state update error:", error);
-                      }
-                    }
-                    localStorage.removeItem("member"); 
-                    router.replace("/login"); 
-                  }}
-                  className="bg-[#F2A900]/10 hover:bg-[#F2A900]/20 text-[#d69500] px-2.5 py-1 rounded-md text-[11px] font-black transition-colors"
-                >
-                  Log Out
-                </button>
-              </div>
+<div className="flex flex-wrap gap-2 pt-1">
+  
+  {(isSuperAdmin || currentRole === "President" || currentRole === "Secretary" || currentRole === "Treasurer") && (
+    <button
+      onClick={() => router.push("/admin")}
+      className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all"
+    >
+      Admin
+    </button>
+  )}
+  
+  <button onClick={() => router.push("/members")} className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all">Members</button>
+  <button onClick={() => router.push("/club")} className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all">Club</button>
+  <button onClick={() => router.push("/my-profile")} className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all">My Profile</button>
+  
+  <button 
+    onClick={async () => { /* ... तुमचा लॉग आऊट लॉजिक ... */ }}
+    className="bg-[#F2A900]/10 hover:bg-[#F2A900]/20 text-[#d69500] px-2 py-1 rounded-md text-[10px] font-black transition-colors"
+  >
+    Logout
+  </button>
+</div>
 
             </div>
           )}

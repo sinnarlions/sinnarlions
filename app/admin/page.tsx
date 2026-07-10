@@ -666,7 +666,24 @@ export default function AdminPage() {
 
           </div>
         </button>
+<button
+  onClick={() => router.push("/admin/cabinet-officers")}
+  className="cursor-pointer rounded-xl border border-cyan-200 bg-white px-4 py-2.5 text-left shadow-sm transition-all hover:border-cyan-400 hover:shadow-md"
+>
+  <div className="flex items-center justify-between">
 
+    <div className="flex items-center gap-2">
+      <span className="text-lg">🛡️</span>
+
+      <span className="text-[13px] font-semibold text-[#003B75] leading-4">
+        Cabinet Officers
+      </span>
+    </div>
+
+    <span className="text-gray-400">→</span>
+
+  </div>
+</button>
       </div>
 
     </section>
