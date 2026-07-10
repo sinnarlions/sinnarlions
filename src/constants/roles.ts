@@ -5,34 +5,51 @@ export interface LionsRole {
 
 export const LIONS_ROLES: LionsRole[] = [
   { name: "President", unique: true },
+  { name: "Secretary", unique: true },
+  { name: "Treasurer", unique: true },
+
   { name: "Immediate Past President", unique: true },
 
-  { name: "Secretary", unique: true },
-  { name: "Add. Secretary", unique: true },
+  { name: "First Vice President", unique: true },
+  { name: "Second Vice President", unique: true },
+  { name: "Third Vice President", unique: true },
 
-  { name: "Treasurer", unique: true },
-  { name: "Add. Treasurer", unique: true },
+  { name: "Joint Secretary", unique: true },
+  { name: "Joint Treasurer", unique: true },
 
-  { name: "Vice President 1", unique: true },
-  { name: "Vice President 2", unique: true },
-  { name: "Vice President 3", unique: true },
-
-  { name: "Director", unique: false },
-
-  { name: "Service Chairperson", unique: true },
-  { name: "Membership Chairperson", unique: true },
-  { name: "Marketing Chairperson", unique: true },
-
-  { name: "LCIF Coordinator", unique: true },
+  { name: "PRO", unique: true },
 
   { name: "GMT Chairperson", unique: true },
   { name: "GLT Chairperson", unique: true },
   { name: "GST Chairperson", unique: true },
 
-  { name: "P.R.O.", unique: true },
-
+  { name: "Tail Tamar", unique: true },
   { name: "Tail Twister", unique: true },
-  { name: "Lion Tamer", unique: true },
+
+  { name: "Director", unique: false },
+ 
+  { name: "Member", unique: false },
+  { name: "District Governor", unique: false },
+  { name: "Immediate Past District Governor", unique: false },
+  { name: "First Vice District Governor", unique: false },
+  { name: "Second Vice District Governor", unique: false },
+
+  { name: "Region Chairperson", unique: false },
+  { name: "Zone Chairperson", unique: false },
+
+  { name: "Cabinet Secretary", unique: false },
+  { name: "Cabinet Treasurer", unique: false },
+
+  { name: "District PRO", unique: false },
+
+  { name: "GMT Coordinator", unique: false },
+  { name: "GLT Coordinator", unique: false },
+  { name: "GST Coordinator", unique: false },
+
+  { name: "LCIF Coordinator", unique: false },
+
+  { name: "IT Chairperson", unique: false },
+  { name: "Marketing Chairperson", unique: false },
 
   { name: "Member", unique: false },
 ];

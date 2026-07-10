@@ -284,18 +284,26 @@ const loadUpcomingMeeting = async () => {
                       Admin
                     </button>
                   )}
-                  <button
-                    onClick={() => router.push("/members")}
-                    className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-all"
-                  >
-                    Members
-                  </button>
-                  <button
-                    onClick={() => router.push("/my-profile")}
-                    className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-all"
-                  >
-                    My Profile
-                  </button>
+                 <button
+  onClick={() => router.push("/members")}
+  className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-all"
+>
+  Members
+</button>
+
+<button
+  onClick={() => router.push("/club")}
+  className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-all"
+>
+  Club
+</button>
+
+<button
+  onClick={() => router.push("/my-profile")}
+  className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-all"
+>
+  My Profile
+</button>
                 </div>
                 
                 <button 

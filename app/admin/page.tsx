@@ -512,52 +512,168 @@ export default function AdminPage() {
 )}
 
 {/* ================= SUPER ADMIN TOOLS ================= */}
+{/* ================= SUPER ADMIN ================= */}
 {isSuperAdmin && (
-  <section className="mt-8 rounded-2xl border border-[#F2A900]/35 bg-[#FFFBEA]/40 p-4 sm:p-5 shadow-xs">
-    
-    {/* सुबक आणि लहान हेडिंग */}
-    <div className="mb-4 flex items-center gap-2">
-      <span className="text-lg">🛡️</span>
-      <h2 className="text-base font-black text-[#003B75] tracking-tight">
-        Super Admin Tools
-      </h2>
-    </div>
+  <>
+    {/* ---------- SUPER ADMIN TOOLS ---------- */}
+    <section className="mt-8 rounded-2xl border border-[#F2A900]/30 bg-[#FFFBEA]/40 p-4">
 
-    {/* स्लीक बटन्स - मोबाईलवर एकाखाली एक, मोठ्या स्क्रीनवर शेजारी-शेजारी */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-      
-      {/* १. जुने मॅनेजमेंट पेज (नवीन नावासह) */}
-      <button
-        onClick={() => router.push("/admin/members")}
-        className="w-full flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-xs hover:border-[#003B75]/35 active:scale-[0.99] transition-all cursor-pointer"
-      >
-        <div className="flex items-center gap-3 min-w-0">
-          <span className="text-lg shrink-0">👥</span>
-          <span className="text-sm font-bold text-[#003B75] truncate">
-            Member Profiles
-          </span>
-        </div>
-        <span className="text-xs font-bold text-gray-400 pl-2">→</span>
-      </button>
+      <div className="mb-3 flex items-center gap-2">
+        <span className="text-lg">🛡️</span>
+        <h2 className="text-base font-black text-[#003B75]">
+          Super Admin Tools
+        </h2>
+      </div>
 
-      {/* २. नवीन सेक्युरिटी पेज */}
-      <button
-        onClick={() => router.push("/admin/security")}
-        className="w-full flex items-center justify-between rounded-xl border border-rose-200 bg-white px-4 py-3 shadow-xs hover:border-rose-400 active:scale-[0.99] transition-all cursor-pointer"
-      >
-        <div className="flex items-center gap-3 min-w-0">
-          <span className="text-lg shrink-0">🔐</span>
-          <span className="text-sm font-bold text-[#003B75] truncate">
-            Login & Security
-          </span>
-        </div>
-        <span className="text-xs font-bold text-rose-400 pl-2">→</span>
-      </button>
+      <div className="grid grid-cols-2 gap-3">
 
-    </div>
-  </section>
+        <button
+          onClick={() => router.push("/admin/members")}
+          className="flex cursor-pointer items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2.5 shadow-sm transition-all hover:border-[#003B75] hover:shadow-md"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-lg">👥</span>
+            <span className="text-[13px] font-semibold text-[#003B75]">
+              Members
+            </span>
+          </div>
+
+          <span className="text-gray-400">→</span>
+        </button>
+
+        <button
+          onClick={() => router.push("/admin/security")}
+          className="flex cursor-pointer items-center justify-between rounded-xl border border-red-200 bg-white px-4 py-2.5 shadow-sm transition-all hover:border-red-400 hover:shadow-md"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🔐</span>
+            <span className="text-[13px] font-semibold text-[#003B75]">
+              Security
+            </span>
+          </div>
+
+          <span className="text-red-400">→</span>
+        </button>
+
+      </div>
+
+    </section>
+
+    {/* ---------- CLUB MANAGEMENT ---------- */}
+
+    <section className="mt-6">
+
+      <div className="mb-3 flex items-center gap-2">
+        <span className="text-lg">🏛️</span>
+        <h2 className="text-base font-black text-[#003B75]">
+          Club Management
+        </h2>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+
+        <button
+          onClick={() => router.push("/admin/past-presidents")}
+          className="cursor-pointer rounded-xl border border-yellow-200 bg-white px-4 py-2.5 text-left shadow-sm transition-all hover:border-yellow-400 hover:shadow-md"
+        >
+          <div className="flex items-center justify-between">
+
+            <div className="flex items-center gap-2">
+              <span className="text-lg">👑</span>
+
+              <span className="text-[13px] font-semibold text-[#003B75] leading-4">
+                Past Presidents
+              </span>
+            </div>
+
+            <span className="text-gray-400">→</span>
+
+          </div>
+        </button>
+
+        <button
+          onClick={() => router.push("/admin/club-information")}
+          className="cursor-pointer rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-left shadow-sm transition-all hover:border-blue-400 hover:shadow-md"
+        >
+          <div className="flex items-center justify-between">
+
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🏛️</span>
+
+              <span className="text-[13px] font-semibold text-[#003B75] leading-4">
+                Club Information
+              </span>
+            </div>
+
+            <span className="text-gray-400">→</span>
+
+          </div>
+        </button>
+
+        <button
+          onClick={() => router.push("/admin/club-awards")}
+          className="cursor-pointer rounded-xl border border-amber-200 bg-white px-4 py-2.5 text-left shadow-sm transition-all hover:border-amber-400 hover:shadow-md"
+        >
+          <div className="flex items-center justify-between">
+
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🏆</span>
+
+              <span className="text-[13px] font-semibold text-[#003B75] leading-4">
+                Club Awards
+              </span>
+            </div>
+
+            <span className="text-gray-400">→</span>
+
+          </div>
+        </button>
+
+        <button
+          onClick={() => router.push("/admin/signature-projects")}
+          className="cursor-pointer rounded-xl border border-green-200 bg-white px-4 py-2.5 text-left shadow-sm transition-all hover:border-green-400 hover:shadow-md"
+        >
+          <div className="flex items-center justify-between">
+
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🌱</span>
+
+              <span className="text-[13px] font-semibold text-[#003B75] leading-4">
+                Signature Projects
+              </span>
+            </div>
+
+            <span className="text-gray-400">→</span>
+
+          </div>
+        </button>
+
+        <button
+          onClick={() => router.push("/admin/committees")}
+          className="cursor-pointer rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-left shadow-sm transition-all hover:border-gray-500 hover:shadow-md"
+        >
+          <div className="flex items-center justify-between">
+
+            <div className="flex items-center gap-2">
+              <span className="text-lg">👥</span>
+
+              <span className="text-[13px] font-semibold text-[#003B75] leading-4">
+                Committees
+              </span>
+            </div>
+
+            <span className="text-gray-400">→</span>
+
+          </div>
+        </button>
+
+      </div>
+
+    </section>
+  </>
 )}
       </div>
+      
     </main>
   );
 }
