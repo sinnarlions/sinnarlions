@@ -12,7 +12,7 @@ interface Member {
   weddingDate?: string;
   bloodGroup?: string;
   profession?: string;
-  company?: string;
+  companyName?: string;
   jobTitle?: string;
   businessCategory?: string;
   address?: string;
@@ -157,7 +157,7 @@ export default function MemberViewModal({ member, onClose }: MemberViewModalProp
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-400 block">Company / Business Name</label>
-                <div className="mt-1">{renderValue(member.company)}</div>
+                <div className="mt-1">{renderValue(member.companyName)}</div>
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-400 block">Job Title</label>

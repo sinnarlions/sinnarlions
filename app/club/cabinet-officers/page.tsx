@@ -171,7 +171,7 @@ export default function CabinetOfficersPage() {
               key={item.id}
               onClick={() =>
                 item.memberId &&
-                router.push(`/member/${item.memberId}`)
+                router.push(`/members/${item.memberId}`)
               }
               className="cursor-pointer rounded-xl border-l-4 border-cyan-500 bg-white px-4 py-3 shadow-sm transition hover:shadow-md"
             >

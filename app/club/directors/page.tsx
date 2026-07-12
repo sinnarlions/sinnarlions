@@ -101,7 +101,7 @@ export default function DirectorsPage() {
           directors.map((member) => (
             <div
               key={member.id}
-              onClick={() => router.push(`/member/${member.id}`)}
+              onClick={() => router.push(`/members/${member.id}`)}
               className="rounded-xl border-l-4 border-[#F2A900] bg-white px-4 py-2.5 shadow-sm cursor-pointer hover:shadow-md active:scale-[0.99] transition"
             >
               <p className="text-sm font-semibold text-black">

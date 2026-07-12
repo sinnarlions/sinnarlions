@@ -37,7 +37,7 @@ export default function MemberAddModal({ onClose, onSuccess }: MemberAddModalPro
     anniversary: "",
     bloodGroup: "",
     profession: "",
-    company: "",
+    companyName: "",
     jobTitle: "",
     businessCategory: "",
     address: "",
@@ -172,7 +172,7 @@ export default function MemberAddModal({ onClose, onSuccess }: MemberAddModalPro
               {/* Company */}
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Company / Business Name</label>
-                <input type="text" name="company" placeholder="Company Name" value={formData.company} onChange={handleChange} className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input type="text" name="company" placeholder="Company Name" value={formData.companyName} onChange={handleChange} className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
 
               {/* Job Title */}

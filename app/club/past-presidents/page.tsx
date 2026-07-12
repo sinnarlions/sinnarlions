@@ -141,8 +141,10 @@ export default function PastPresidentsPage() {
             <div
               key={item.id}
               onClick={() => {
+ 
                 if (item.member) {
-                  router.push(`/member/${item.member.id}`);
+                  
+                  router.push(`/members/${item.member.id}`);
                 }
               }}
               className={`rounded-xl border-l-4 border-[#F2A900] bg-white px-4 py-2 shadow-sm transition ${

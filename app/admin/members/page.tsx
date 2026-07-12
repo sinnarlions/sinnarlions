@@ -20,7 +20,7 @@ interface Member {
   anniversary?: string;
   bloodGroup?: string;
   profession?: string;
-  company?: string;
+  companyName?: string;
   jobTitle?: string;
   businessCategory?: string;
   address?: string;
@@ -61,7 +61,7 @@ export default function MemberManagementPage() {
           anniversary: data.anniversary || "",
           bloodGroup: data.bloodGroup || "",
           profession: data.profession || "",
-          company: data.company || "",
+          companyName: data.companyName || "",
           jobTitle: data.jobTitle || "",
           businessCategory: data.businessCategory || "",
           address: data.address || "",

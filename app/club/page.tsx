@@ -17,6 +17,13 @@ import {
 
 const clubSections = [
   {
+  title: "Members Directory",
+  description: "View all club members",
+  href: "/members",
+  icon: Users,
+},
+  
+  {
     title: "Office Bearers",
     description: "Current club leadership",
     href: "/club/board",

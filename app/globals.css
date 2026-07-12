@@ -24,7 +24,7 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
-/* ==========================================
+/* ========================================
    Global Form Styling
 ========================================== */
 
@@ -32,10 +32,11 @@ input,
 select,
 textarea {
   background-color: #ffffff;
-  color: #111827;
+  color: #374151;              /* text-gray-700 */
   border: 1px solid #d1d5db;
   opacity: 1;
-  -webkit-text-fill-color: #111827;
+  -webkit-text-fill-color: #374151;
+  caret-color: #003B75;
 }
 
 input::placeholder,
