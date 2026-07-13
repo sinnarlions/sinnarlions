@@ -279,22 +279,48 @@ const loadUpcomingMeeting = async () => {
   {(isSuperAdmin || currentRole === "President" || currentRole === "Secretary" || currentRole === "Treasurer") && (
     <button
       onClick={() => router.push("/admin")}
-      className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all"
+      className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all"
     >
       Admin
     </button>
   )}
   
   
-  <button onClick={() => router.push("/club")} className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all">Club</button>
-  <button onClick={() => router.push("/my-profile")} className="bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all">My Profile</button>
+  <button onClick={() => router.push("/club")} className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all">Club</button>
+  <button onClick={() => router.push("/my-profile")} className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all">My Profile</button>
   
-  <button 
-    onClick={async () => { /* ... तुमचा लॉग आऊट लॉजिक ... */ }}
-    className="bg-[#F2A900]/10 hover:bg-[#F2A900]/20 text-[#d69500] px-2 py-1 rounded-md text-[10px] font-black transition-colors"
-  >
-    Logout
-  </button>
+  <button
+  onClick={async () => {
+    try {
+      const member = localStorage.getItem("member");
+
+      if (member) {
+        const saved = JSON.parse(member);
+
+        // Normal members/Admins
+        if (!saved.isSuperAdmin) {
+          await updateDoc(doc(db, "members", saved.id), {
+            isLoggedIn: false,
+            sessionId: "",
+          });
+        }
+
+        // Super Admin साठी Firestore update नाही
+      }
+
+      localStorage.clear();
+      router.replace("/login");
+    } catch (error) {
+      console.error("Logout Error:", error);
+
+      localStorage.clear();
+      router.replace("/login");
+    }
+  }}
+className="cursor-pointer bg-[#F2A900]/10 hover:bg-[#F2A900]/20 text-[#d69500] px-2 py-1 rounded-md text-[10px] font-black transition-colors"
+>
+  Logout
+</button>
 </div>
 
             </div>
