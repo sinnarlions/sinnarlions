@@ -29,6 +29,16 @@ export default function MembersPage() {
   }
 }, [router]);
 
+const getSortName = (name: string = "") => {
+  return name
+    .replace(
+      /^(Lion\s+Dr\.?|Lion\s+Er\.?|Lion\s+Adv\.?|Lion\s+CA|Lion\.?|Dr\.?|Er\.?|Adv\.?|CA)\s+/i,
+      ""
+    )
+    .trim()
+    .toLowerCase();
+};
+
   const loadMembers = async () => {
     try {
       const snapshot = await getDocs(collection(db, "members"));
@@ -38,10 +48,10 @@ export default function MembersPage() {
         ...doc.data(),
       }));
 
-      // Name sort
-      data.sort((a: any, b: any) =>
-        (a.name || "").localeCompare(b.name || "")
-      );
+     // Smart Alphabetical Sort (ignores prefixes like Dr., Er., Adv., CA, Lion)
+data.sort((a: any, b: any) =>
+  getSortName(a.name).localeCompare(getSortName(b.name))
+);
 
       setMembers(data);
     } catch (error) {
