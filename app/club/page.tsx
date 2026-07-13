@@ -12,6 +12,7 @@ import {
   ScrollText,
   Trophy,
   Target,
+    Flag,
   ChevronRight,
 } from "lucide-react";
 
@@ -72,6 +73,12 @@ const clubSections = [
     href: "/club/projects",
     icon: Target,
   },
+  {
+  title: "ध्वज वंदन",
+  description: "National Flag Salutation",
+  href: "/club/flag-salutation",
+  icon: ScrollText,
+},
 ];
 
 export default function ClubPage() {
