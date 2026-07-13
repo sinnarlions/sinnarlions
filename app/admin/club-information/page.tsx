@@ -25,6 +25,10 @@ export default function ClubInformationAdminPage() {
     district: "",
     region: "",
     zone: "",
+
+     regionChairperson: "",
+  zoneChairperson: "",
+
     meetingDay: "",
     meetingTime: "",
     meetingVenue: "",
@@ -228,7 +232,37 @@ export default function ClubInformationAdminPage() {
             className="w-full rounded-xl border p-3"
           />
         </div>
+{/* Region Chairperson */}
 
+<div>
+  <label className="mb-1 block text-xs font-bold uppercase text-gray-500">
+    Region Chairperson
+  </label>
+
+  <input
+    name="regionChairperson"
+    value={form.regionChairperson}
+    onChange={handleChange}
+    className="w-full rounded-xl border p-3"
+    placeholder="Region Chairperson"
+  />
+</div>
+
+{/* Zone Chairperson */}
+
+<div>
+  <label className="mb-1 block text-xs font-bold uppercase text-gray-500">
+    Zone Chairperson
+  </label>
+
+  <input
+    name="zoneChairperson"
+    value={form.zoneChairperson}
+    onChange={handleChange}
+    className="w-full rounded-xl border p-3"
+    placeholder="Zone Chairperson"
+  />
+</div>
         {/* Meeting Day */}
 
         <div>

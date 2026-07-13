@@ -208,51 +208,51 @@ export default function ClubInformationPage() {
           <div className="space-y-3 text-sm">
 
             <div className="flex justify-between">
-              <span className="font-semibold text-gray-500">
-                District
-              </span>
+  <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+    District
+  </span>
 
-              <span className="font-bold">
-                {club.district}
-              </span>
-            </div>
+  <span className="text-sm font-semibold text-slate-800">
+    {club.district}
+  </span>
+</div>
 
-            <div className="flex justify-between">
-              <span className="font-semibold text-gray-500">
-                Region
-              </span>
+           <div className="flex justify-between">
+  <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+    Region
+  </span>
 
-              <span className="font-bold">
-                {club.region}
-              </span>
-            </div>
+  <span className="text-sm font-semibold text-slate-800">
+    {club.region}
+  </span>
+</div>
 
-            <div className="flex justify-between">
-              <span className="font-semibold text-gray-500">
-                Zone
-              </span>
+           <div className="flex justify-between">
+  <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+    Zone
+  </span>
 
-              <span className="font-bold">
-                {club.zone}
-              </span>
-            </div>
+  <span className="text-sm font-semibold text-slate-800">
+    {club.zone}
+  </span>
+</div>
 
             <div className="flex justify-between gap-3">
-              <span className="font-semibold text-gray-500">
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
                 Region Chairperson
               </span>
 
-              <span className="text-right font-bold">
+              <span className="text-right text-sm font-semibold text-slate-800">
                 {club.regionChairperson}
               </span>
             </div>
 
             <div className="flex justify-between gap-3">
-              <span className="font-semibold text-gray-500">
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
                 Zone Chairperson
               </span>
 
-              <span className="text-right font-bold">
+              <span className="text-right text-sm font-semibold text-slate-800">
                 {club.zoneChairperson}
               </span>
             </div>
@@ -271,11 +271,11 @@ export default function ClubInformationPage() {
           <div className="space-y-3 text-sm">
 
             <div className="flex justify-between">
-              <span className="font-semibold text-gray-500">
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
                 Meeting Day
               </span>
 
-              <span className="font-bold">
+              <span className="text-sm font-semibold text-slate-800">
                 {club.meetingDay}
               </span>
             </div>
@@ -285,7 +285,7 @@ export default function ClubInformationPage() {
                 Meeting Time
               </span>
 
-              <span className="font-bold">
+             <span className="text-sm font-semibold text-slate-800">
                 {club.meetingTime}
               </span>
             </div>
