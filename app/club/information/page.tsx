@@ -291,7 +291,7 @@ export default function ClubInformationPage() {
             </div>
 
             <div className="flex justify-between gap-3">
-              <span className="font-semibold text-gray-500">
+              <span className="text-sm font-semibold text-slate-800">
                 Meeting Venue
               </span>
 

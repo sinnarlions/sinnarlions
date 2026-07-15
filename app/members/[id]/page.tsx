@@ -2,216 +2,278 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { collection, getDocs, query, where, limit, doc, getDoc } from "firebase/firestore";
+import Image from "next/image";
+import { collection, doc, getDoc, getDocs, limit, query, where } from "firebase/firestore";
 import { db } from "@/src/firebase/config";
+import { Shield, User, Briefcase, Heart, Phone, MessageCircle, Mail, MapPin, ArrowLeft,  LucideIcon, Calendar } from "lucide-react";
 
-// तारीख फॉरमॅट फंक्शन
 const formatWithoutYear = (dateString: string) => {
   if (!dateString || dateString === "-") return "-";
-
-  const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-  ];
-
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const parts = dateString.split(".");
-
   if (parts.length === 3) {
     const day = parseInt(parts[0], 10);
     const month = parseInt(parts[1], 10);
-
-    if (!isNaN(day) && month >= 1 && month <= 12) {
-      return `${day} ${months[month - 1]}`;
-    }
+    if (!isNaN(day) && month >= 1 && month <= 12) return `${day} ${months[month - 1]}`;
   }
-
   return dateString;
 };
+
 export default function MemberProfilePage() {
   const router = useRouter();
   const params = useParams();
-
   const [member, setMember] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const memberSession = localStorage.getItem("member");
-    if (!memberSession) {
-      router.push("/");
-      return;
-    }
+    const session = localStorage.getItem("member");
+    if (!session) { router.push("/"); return; }
     loadMember();
   }, []);
 
   const loadMember = async () => {
     try {
       const targetId = params.id as string;
-      const docRef = doc(db, "members", targetId);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        setMember({ id: docSnap.id, ...docSnap.data() });
-        return;
-      }
-
+      const memberRef = doc(db, "members", targetId);
+      const memberSnap = await getDoc(memberRef);
+      if (memberSnap.exists()) { setMember({ id: memberSnap.id, ...memberSnap.data() }); return; }
       const q = query(collection(db, "members"), where("memberCode", "==", targetId), limit(1));
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        const foundDoc = querySnapshot.docs[0];
-        setMember({ id: foundDoc.id, ...foundDoc.data() });
-      }
-    } catch (error) {
-      console.error("Error loading member profile:", error);
-    } finally {
-      setLoading(false);
-    }
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) setMember({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() });
+    } catch (err) { console.error(err); } finally { setLoading(false); }
   };
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#F8F9FA] flex items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#00529B] border-t-transparent"></div>
-          <p className="text-[#00529B] font-bold tracking-wide text-sm">Loading Profile...</p>
-        </div>
-      </main>
-    );
-  }
-
-  if (!member) {
-    return (
-      <main className="min-h-screen bg-[#F8F9FA] flex items-center justify-center p-4">
-        <div className="bg-white border-l-4 border-red-500 rounded-2xl p-6 shadow-sm max-w-sm w-full text-center">
-          <p className="text-red-600 font-bold text-base">Member Profile Not Found</p>
-          <button onClick={() => router.push("/members")} className="mt-4 bg-[#00529B] text-white text-xs px-4 py-2 rounded-xl font-bold">
-            Go Back to Directory
-          </button>
-        </div>
-      </main>
-    );
-  }
+  if (loading) return <main className="min-h-screen flex items-center justify-center bg-[#F8F9FA]"><div className="h-10 w-10 animate-spin rounded-full border-4 border-[#003B75] border-t-transparent" /></main>;
+  if (!member) return <main className="min-h-screen flex items-center justify-center p-4">Member not found</main>;
 
   return (
-    <main className="min-h-screen bg-[#F8F9FA] pb-12 font-sans antialiased">
-      <div className="border-b-4 border-[#F2A900] bg-[#003B75] shadow-md sticky top-0 z-20 text-white">
-        <div className="max-w-md mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold tracking-tight text-white">LIONS CONNECT</h1>
-          <button onClick={() => router.push("/members")} className="bg-[#00529B] border border-[#F2A900]/30 text-white px-3.5 py-1.5 rounded-xl font-bold text-xs hover:bg-[#F2A900] hover:text-[#003B75] active:scale-95 transition-all shadow-sm">
-            ← Back
-          </button>
-        </div>
-      </div>
+    <main className="min-h-screen bg-[#F5F7FA] pb-10 max-w-md mx-auto">
+      <header className="sticky top-0 z-50 bg-[#003B75] border-b-4 border-[#F2A900] shadow-md px-4 py-2 flex items-center justify-between">
+  {/* बॅक बटण */}
+  <button onClick={() => router.back()} className="text-white p-1">
+    <ArrowLeft size={20} />
+  </button>
 
-      <div className="max-w-md mx-auto px-4 mt-5 space-y-4">
-        {/* Header Card with Photo */}
-        <div className="bg-[#003B75] rounded-3xl shadow-md p-6 border border-[#002D62]/30 text-white">
-          <div className="flex items-center gap-4 mb-5">
-            <div className="w-20 h-20 rounded-full border-4 border-[#F2A900] overflow-hidden shadow-lg bg-white flex items-center justify-center flex-shrink-0">
-              {member.photoUrl ? (
-                <img src={member.photoUrl} alt={member.name} className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-[#003B75] font-black text-3xl">{member.name?.charAt(0)}</span>
-              )}
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-white tracking-tight leading-tight">{member.name}</h2>
-              {member.memberCode && <p className="mt-1 text-[#F2A900] text-xs font-bold tracking-wider uppercase">ID: {member.memberCode}</p>}
-            </div>
-          </div>
-          <div className="flex gap-2.5">
-            {member.mobile && (
-              <a href={`tel:${member.mobile}`} className="bg-green-600 text-white px-4 py-2 rounded-xl font-bold text-xs shadow-md hover:bg-green-700 active:scale-95 transition-all flex items-center gap-1.5">📞 Call</a>
-            )}
-            {member.mobile && (
-              <a href={`https://wa.me/91${member.mobile.replace(/\D/g, '')}`} target="_blank" className="bg-white text-[#003B75] px-4 py-2 rounded-xl font-bold text-xs shadow-md hover:bg-gray-100 active:scale-95 transition-all flex items-center gap-1.5">💬 WhatsApp</a>
-            )}
-          </div>
-        </div>
+  {/* नाव आणि क्लब माहिती */}
+  <div className="text-center">
+    <h1 className="text-white text-[11px] font-black tracking-[0.2em]">
+      LIONS CONNECT
+    </h1>
+    <p className="text-[9px] text-[#F2A900] font-bold">
+      Lions Club of Sinnar City
+    </p>
+  </div>
 
-        {/* Sections */}
-        <div className="bg-white rounded-2xl shadow-sm p-5 border border-l-4 border-l-[#00529B] border-gray-100">
-          <h3 className="mb-4 text-xs font-bold text-[#00529B] uppercase tracking-wider">Lions Club Information</h3>
-          <div className="space-y-4">
-            <div><p className="text-[11px] font-bold text-gray-400 uppercase">Role</p><p className="font-bold text-sm text-[#003B75]">{member.currentLionsRole || "-"}</p></div>
-            <div><p className="text-[11px] font-bold text-gray-400 uppercase">Year Joined</p><p className="font-semibold text-sm text-gray-800">{member.yearJoinedLions || "-"}</p></div>
-            <div><p className="text-[11px] font-bold text-gray-400 uppercase">Past Positions</p><p className="font-semibold text-sm text-gray-800">{member.pastPositions || "-"}</p></div>
-            <div><p className="text-[11px] font-bold text-gray-400 uppercase">Awards</p><p className="font-semibold text-sm text-gray-800">{member.awardsAchievements || "-"}</p></div>
-          </div>
-        </div>
+  {/* लोगो */}
+  <div className="w-[30px]">
+    <Image src="/logo.png" alt="logo" width={30} height={30} />
+  </div>
+</header>
 
-        <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
-          <h3 className="mb-4 text-xs font-bold text-[#00529B] uppercase tracking-wider">Personal Information</h3>
-          <div className="space-y-4">
-            <div><p className="text-[11px] font-bold text-gray-400 uppercase">Mobile</p><p className="font-semibold text-sm text-gray-800">{member.mobile || "-"}</p></div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-  <p className="text-[11px] font-bold text-gray-400 uppercase">
-    Email
-  </p>
-  <p className="font-semibold text-sm text-gray-800 break-all">
-    {member.email || "-"}
-  </p>
-</div>
+      {/* Hero Card */}
+      {/* Hero Card */}
 
-<div>
-  <p className="text-[11px] font-bold text-gray-400 uppercase">
-    Birthday
-  </p>
-  <p className="font-semibold text-sm text-gray-800">
-    {formatWithoutYear(member.dob || "-")}
-  </p>
-</div>
-            </div>
-            <div><p className="text-[11px] font-bold text-gray-400 uppercase">Address</p><p className="font-semibold text-sm text-gray-800">{member.address || "-"}</p></div>
-          </div>
-        </div>
+<section className="px-4 pt-3">
+  <div className="relative rounded-3xl border border-[#F2A900]/30 bg-gradient-to-br from-[#002B5B] via-[#003B75] to-[#0067C5] px-5 pt-3 pb-3 text-center text-white shadow-xl overflow-hidden">
 
-        <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
-          <h3 className="mb-4 text-xs font-bold text-[#00529B] uppercase tracking-wider">Professional Information</h3>
-          <div className="space-y-4">
-            <div><p className="text-[11px] font-bold text-gray-400 uppercase">Profession</p><p className="font-semibold text-sm text-gray-800">{member.profession || "-"}</p></div>
-            <div><p className="text-[11px] font-bold text-gray-400 uppercase">Company</p><p className="font-semibold text-sm text-gray-800">{member.companyName || "-"}</p></div>
-            <div><p className="text-[11px] font-bold text-gray-400 uppercase">Title</p><p className="font-semibold text-sm text-gray-800">{member.jobTitle || "-"}</p></div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
-  <h3 className="mb-4 text-xs font-bold text-[#00529B] uppercase tracking-wider">
-    Family Information
-  </h3>
-
-  <div className="space-y-4">
-
-    <div>
-      <p className="text-[11px] font-bold text-gray-400 uppercase">
-        Spouse Name
-      </p>
-      <p className="font-semibold text-sm text-gray-800">
-        {member.spouseName || "-"}
-      </p>
+    {/* Member Code */}
+    <div className="absolute top-3 right-3 rounded-full bg-[#F2A900] px-3 py-1 text-[10px] font-black text-[#003B75] shadow">
+      {member.memberCode}
     </div>
 
-    <div>
-      <p className="text-[11px] font-bold text-gray-400 uppercase">
-        Children
-      </p>
-      <p className="font-semibold text-sm text-gray-800 whitespace-pre-wrap">
-    {member.childrenNames || "-"}
-      </p>
+    {/* Photo */}
+    <div className="mx-auto h-36 w-36 overflow-hidden rounded-full border-4 border-[#F2A900] bg-white shadow-2xl ring-4 ring-white/10">
+      {member.photoUrl ? (
+        <Image
+          src={member.photoUrl}
+          alt={member.name}
+          width={128}
+          height={128}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-5xl font-black text-[#003B75]">
+          {member.name?.charAt(0)}
+        </div>
+      )}
     </div>
 
-    <div>
-      <p className="text-[11px] font-bold text-gray-400 uppercase">
-        Anniversary
-      </p>
-      <p className="font-semibold text-sm text-gray-800">
-        {formatWithoutYear(member.anniversary || "-")}
-      </p>
+    {/* Name */}
+    <h2 className="mt-2 text-xl font-extrabold leading-tight">
+      {member.name}
+    </h2>
+
+    {/* Role */}
+    <p className="mt-0.5 text-[11px] font-bold uppercase tracking-[0.18em] text-[#F2A900]">
+      {member.currentLionsRole || "Member"}
+    </p>
+
+    {/* Joined */}
+    <div className="mt-1 flex items-center justify-center gap-1 text-[10px] text-white/70">
+      <Calendar size={11} />
+      Joined {member.yearJoinedLions || "-"}
     </div>
 
   </div>
+</section>
+
+    {/* Quick Actions */}
+
+<section className="px-4 mt-3">
+  <div className="grid grid-cols-4 gap-2">
+
+    <ActionButton
+      icon={Phone}
+      label="Call"
+      action={`tel:${member.mobile}`}
+    />
+
+    <ActionButton
+      icon={MessageCircle}
+      label="WhatsApp"
+      action={`https://wa.me/91${member.mobile?.replace(/\D/g, "")}`}
+    />
+
+    <ActionButton
+      icon={Mail}
+      label="Email"
+      action={`mailto:${member.email}`}
+    />
+
+    <ActionButton
+      icon={MapPin}
+      label="Map"
+      action={`https://maps.google.com/?q=${encodeURIComponent(member.address || "")}`}
+    />
+
+  </div>
+</section>
+
+      {/* Content */}
+      <div className="mt-4 space-y-2.5 px-4">
+        <SectionCard title="Professional Info" icon={<Briefcase size={14} />}>
+          <div className="grid grid-cols-2 divide-x divide-[#003B75]/10">
+  <InfoRow
+    label="Profession"
+    value={member.profession}
+  />
+<InfoRow
+  label="Designation"
+  value={member.jobTitle}
+  
+  />
 </div>
+<InfoRow
+    label="Company"
+    value={member.companyName}
+
+/>
+        </SectionCard>
+
+        <SectionCard title="Personal Details" icon={<User size={14} />}>
+          <div className="grid grid-cols-2 divide-x divide-gray-100">
+            <InfoRow label="Mobile" value={member.mobile} />
+            <InfoRow label="Email" value={member.email} />
+          </div>
+          <InfoRow label="Address" value={member.address} multiline />
+          <InfoRow label="Birthday" value={formatWithoutYear(member.dob)} />
+        </SectionCard>
+
+        <SectionCard title="Family & Lions" icon={<Heart size={14} />}>
+          <div className="grid grid-cols-2 divide-x divide-gray-100">
+             <InfoRow label="Spouse" value={member.spouseName} />
+             <InfoRow label="Anniversary" value={formatWithoutYear(member.anniversary)} />
+          </div>
+          <InfoRow label="Children" value={member.childrenNames} multiline />
+          <InfoRow label="Awards" value={member.awardsAchievements} multiline />
+        </SectionCard>
       </div>
     </main>
+  );
+}
+
+
+
+function ActionButton({
+  icon: Icon,
+  label,
+  action,
+}: {
+  icon: LucideIcon;
+  label: string;
+  action: string;
+}) {
+  return (
+    <a
+      href={action}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="
+        rounded-2xl
+        bg-white
+        py-3
+        shadow-md
+        border
+        border-gray-100
+        flex
+        flex-col
+        items-center
+        justify-center
+        gap-1
+        transition-all
+        hover:shadow-lg
+        active:scale-95
+      "
+    >
+      <div className="rounded-full bg-[#003B75]/10 p-2">
+        <Icon size={18} className="text-[#003B75]" />
+      </div>
+
+      <span className="text-[9px] font-bold text-gray-700">
+        {label}
+      </span>
+    </a>
+  );
+}
+
+function SectionCard({ title, icon, children }: { title: string, icon: React.ReactNode, children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl bg-white border border-[#003B75]/10 shadow-md overflow-hidden">
+      <div className="flex items-center gap-2 bg-gray-50/50 px-4 py-3 border-b border-gray-100">
+        <div className="text-[#003B75]">{icon}</div>
+        <h3 className="text-[10px] font-black uppercase tracking-widest text-[#003B75]">{title}</h3>
+      </div>
+      <div className="divide-y divide-[#003B75]/10">{children}</div>
+    </section>
+  );
+}
+
+function InfoRow({
+  label,
+  value,
+  multiline = false,
+}: {
+  label: string;
+  value?: string;
+  multiline?: boolean;
+}) {
+  return (
+    <div className="px-4 py-2.5">
+      {/* Label */}
+      <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#003B75]">
+        {label}
+      </p>
+
+      {/* Value */}
+      <p
+        className={`text-[14px] font-semibold text-slate-900 ${
+          multiline
+            ? "whitespace-pre-wrap break-words"
+            : "truncate"
+        }`}
+      >
+        {value || "-"}
+      </p>
+    </div>
   );
 }
