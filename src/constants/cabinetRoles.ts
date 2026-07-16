@@ -61,7 +61,9 @@ export const CABINET_ROLES: CabinetRole[] = [
   {
     name: "IT Chairperson",
   },
-
+{
+  name: "District Chairperson – Diabetes Awareness",
+},
   {
     name: "Marketing Chairperson",
   },

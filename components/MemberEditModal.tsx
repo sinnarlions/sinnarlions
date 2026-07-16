@@ -141,6 +141,26 @@ export default function MemberEditModal({ member, onClose }: MemberEditModalProp
               <div><label className="block text-xs font-semibold text-gray-600 mb-1">Year Joined Lions</label><input type="text" name="yearJoinedLions" value={formData.yearJoinedLions} onChange={handleChange} className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
               
               <div><label className="block text-xs font-semibold text-gray-600 mb-1">Current Lions Role</label><select name="currentLionsRole" value={formData.currentLionsRole} onChange={handleChange} className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">{LIONS_ROLES.map((role, index) => <option key={`lions-${index}`} value={role.name}>{role.name}</option>)}</select></div>
+              <div>
+  <label className="block text-xs font-semibold text-gray-600 mb-1">
+    Cabinet Role
+  </label>
+
+  <select
+    name="cabinetRole"
+    value={formData.cabinetRole}
+    onChange={handleChange}
+    className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  >
+    <option value="">None</option>
+
+    {CABINET_ROLES.map((role, index) => (
+      <option key={`cabinet-${index}`} value={role.name}>
+        {role.name}
+      </option>
+    ))}
+  </select>
+</div>
               
               <div className="sm:col-span-2"><label className="block text-xs font-semibold text-gray-600 mb-1">Past Positions Held</label><textarea rows={2} name="pastPositions" value={formData.pastPositions} onChange={handleChange} className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea></div>
               <div className="sm:col-span-2"><label className="block text-xs font-semibold text-gray-600 mb-1">Awards & Achievements</label><textarea rows={2} name="awardsAchievements" value={formData.awardsAchievements} onChange={handleChange} className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea></div>

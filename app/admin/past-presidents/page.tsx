@@ -25,6 +25,8 @@ interface PastPresident {
   id: string;
   year: string;
   memberCode: string;
+  presidentName?: string;
+  isCurrentMember?: boolean;
   displayOrder: number;
 }
 
@@ -51,6 +53,8 @@ export default function PastPresidentsAdminPage() {
 const [editingId, setEditingId] = useState<string | null>(null);
   const [year, setYear] = useState(YEARS[0]);
   const [memberCode, setMemberCode] = useState("");
+const [isCurrentMember, setIsCurrentMember] = useState(true);
+const [presidentName, setPresidentName] = useState("");
 
   useEffect(() => {
     loadData();
@@ -90,15 +94,18 @@ const [editingId, setEditingId] = useState<string | null>(null);
   }
 
  async function savePastPresident() {
-  if (!memberCode) {
+  if (isCurrentMember && !memberCode) {
     alert("Please select a member.");
     return;
   }
 
+  if (!isCurrentMember && !presidentName.trim()) {
+    alert("Please enter Former President name.");
+    return;
+  }
+
   const exists = pastPresidents.find(
-    (p) =>
-      p.year === year &&
-      p.id !== editingId
+    (p) => p.year === year && p.id !== editingId
   );
 
   if (exists) {
@@ -106,29 +113,31 @@ const [editingId, setEditingId] = useState<string | null>(null);
     return;
   }
 
+  const data = {
+    year,
+    displayOrder: YEARS.indexOf(year) + 1,
+    memberCode: isCurrentMember ? memberCode : "",
+    presidentName: isCurrentMember ? "" : presidentName.trim(),
+    isCurrentMember,
+  };
+
   if (editingId) {
     await updateDoc(
       doc(db, "pastPresidents", editingId),
-      {
-        year,
-        memberCode,
-        displayOrder: YEARS.indexOf(year) + 1,
-      }
+      data
     );
   } else {
     await addDoc(
       collection(db, "pastPresidents"),
-      {
-        year,
-        memberCode,
-        displayOrder: YEARS.indexOf(year) + 1,
-      }
+      data
     );
   }
 
   setEditingId(null);
   setYear(YEARS[0]);
   setMemberCode("");
+  setPresidentName("");
+  setIsCurrentMember(true);
 
   loadData();
 }
@@ -181,55 +190,90 @@ const [editingId, setEditingId] = useState<string | null>(null);
         <div className="mt-6 rounded-xl bg-white p-5 shadow">
 
           <div className="grid gap-4 md:grid-cols-2">
+            <div>
+  <label className="text-sm font-semibold">
+    Lion Year
+  </label>
+
+  <select
+    value={year}
+    onChange={(e) => setYear(e.target.value)}
+    className="mt-1 w-full rounded-lg border px-3 py-2"
+  >
+    {YEARS.map((y) => (
+      <option key={y} value={y}>
+        {y}
+      </option>
+    ))}
+  </select>
+</div>
 
             <div>
-              <label className="text-sm font-semibold">
-                Year
-              </label>
+  <label className="text-sm font-semibold">
+    President Type
+  </label>
 
-              <select
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                className="mt-1 w-full rounded-lg border px-3 py-2"
-              >
-                {YEARS.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </select>
+  <select
+    value={isCurrentMember ? "current" : "former"}
+    onChange={(e) => {
+      const current = e.target.value === "current";
+      setIsCurrentMember(current);
 
-            </div>
+      if (current) {
+        setPresidentName("");
+      } else {
+        setMemberCode("");
+      }
+    }}
+    className="mt-1 w-full rounded-lg border px-3 py-2"
+  >
+    <option value="current">Current Member</option>
+    <option value="former">Former President</option>
+  </select>
 
-            <div>
+  {isCurrentMember ? (
+    <>
+      <label className="mt-4 block text-sm font-semibold">
+        Member
+      </label>
 
-              <label className="text-sm font-semibold">
-                Member
-              </label>
+      <select
+        value={memberCode}
+        onChange={(e) => setMemberCode(e.target.value)}
+        className="mt-1 w-full rounded-lg border px-3 py-2"
+      >
+        <option value="">
+          Select Member
+        </option>
 
-              <select
-                value={memberCode}
-                onChange={(e) =>
-                  setMemberCode(e.target.value)
-                }
-                className="mt-1 w-full rounded-lg border px-3 py-2"
-              >
-                <option value="">
-                  Select Member
-                </option>
+        {members.map((m) => (
+          <option
+            key={m.id}
+            value={m.memberCode}
+          >
+            {m.memberCode} — {m.name}
+          </option>
+        ))}
+      </select>
+    </>
+  ) : (
+    <>
+      <label className="mt-4 block text-sm font-semibold">
+        Former President Name
+      </label>
 
-                {members.map((m) => (
-                  <option
-                    key={m.id}
-                    value={m.memberCode}
-                  >
-                    {m.memberCode} — {m.name}
-                  </option>
-                ))}
-
-              </select>
-
-            </div>
+      <input
+        type="text"
+        value={presidentName}
+        onChange={(e) =>
+          setPresidentName(e.target.value)
+        }
+        placeholder="Enter Former President Name"
+        className="mt-1 w-full rounded-lg border px-3 py-2"
+      />
+    </>
+  )}
+</div>
 
           </div>
 
@@ -276,13 +320,15 @@ const [editingId, setEditingId] = useState<string | null>(null);
                     {pp.year}
                   </p>
 
-                  <h2 className="text-lg font-bold text-[#003B75]">
-                    {member?.name || "Unknown Member"}
-                  </h2>
+                 <h2 className="text-lg font-bold text-[#003B75]">
+  {pp.isCurrentMember
+    ? member?.name || "Unknown Member"
+    : pp.presidentName}
+</h2>
 
-                  <p className="text-sm text-gray-500">
-                    {pp.memberCode}
-                  </p>
+                 <p className="text-sm text-gray-500">
+  {pp.isCurrentMember ? pp.memberCode : "Former President"}
+</p>
 
                 </div>
 

@@ -31,8 +31,16 @@ export default function DirectorsPage() {
         ...(doc.data() as Omit<Member, "id">),
       }));
 
-      data.sort((a, b) =>
-  (a.name || "").localeCompare(b.name || "", "en", {
+      const cleanName = (name: string = "") =>
+  name
+    .replace(
+      /^(Dr\.|Er\.|Prof\.|CA|Adv\.|Mr\.|Mrs\.|Ms\.|Lion)\s+/i,
+      ""
+    )
+    .trim();
+
+data.sort((a, b) =>
+  cleanName(a.name).localeCompare(cleanName(b.name), "en", {
     sensitivity: "base",
   })
 );

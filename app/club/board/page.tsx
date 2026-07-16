@@ -46,7 +46,9 @@ export default function BoardPage() {
           id: d.id,
           ...(d.data() as Omit<Member, "id">),
         }));
-
+list.forEach((m) => {
+  console.log(m.name, "=>", `"${m.currentLionsRole}"`);
+});
         setMembers(list);
       } catch (err) {
         console.error(err);

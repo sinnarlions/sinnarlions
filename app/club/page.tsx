@@ -87,8 +87,7 @@ export default function ClubPage() {
     <main className="min-h-screen bg-slate-100">
       <div className="mx-auto max-w-md px-4 py-4">
         {/* Header */}
-        {/* Header */}
-<div className="overflow-hidden rounded-2xl bg-[#0B4D9B] shadow-md">
+<div className="overflow-hidden rounded-2xl bg-[#003B75] shadow-md">
   <div className="flex items-center justify-between px-4 py-4">
 
     <div className="flex items-center gap-3">
@@ -97,16 +96,20 @@ export default function ClubPage() {
         alt="Lions Club Logo"
         width={52}
         height={52}
-        className="h-auto w-12"
+        className="w-12 h-12"
         priority
       />
 
       <div>
-        <h1 className="text-base font-bold text-white">
-          Lions Club of Sinnar City
+        <h1 className="text-[11px] font-black uppercase tracking-[0.20em] text-white">
+          LIONS CONNECT
         </h1>
 
-        <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-yellow-300">
+        <p className="text-[9px] font-bold text-[#F2A900]">
+          Lions Club of Sinnar City
+        </p>
+
+        <p className="mt-1 text-[9px] uppercase tracking-[0.15em] text-white/70">
           Club Information & Leadership
         </p>
       </div>
@@ -114,7 +117,7 @@ export default function ClubPage() {
 
     <button
       onClick={() => router.push("/")}
-      className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-[#0B4D9B]"
+      className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-[#003B75]"
     >
       ← Back
     </button>
@@ -133,40 +136,73 @@ export default function ClubPage() {
           {clubSections.map((section) => {
             const Icon = section.icon;
 
-            return (
-              <Link
-                key={section.href}
-                href={section.href}
-                className="group block rounded-xl border border-slate-200 bg-white transition-all duration-200 hover:border-[#0B4D9B] hover:shadow-md"
-              >
-                <div className="flex items-center justify-between px-3 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50">
-                      <Icon
-                        size={18}
-                        className="text-[#0B4D9B]"
-                        strokeWidth={2.2}
-                      />
-                    </div>
+           return (
+  <Link
+    key={section.href}
+    href={section.href}
+    className="
+      group
+      block
+      rounded-xl
+      border
+      border-[#003B75]/10
+      bg-gradient-to-br
+      from-white
+      via-white
+      to-blue-50/40
+      shadow-sm
+      transition-all
+      duration-200
+      hover:border-[#0B4D9B]
+      hover:shadow-lg
+      hover:-translate-y-0.5
+    "
+  >
+    <div className="flex items-center justify-between px-3 py-3">
+      <div className="flex items-center gap-3">
+        <div
+          className="
+            flex
+            h-10
+            w-10
+            items-center
+            justify-center
+            rounded-full
+            bg-blue-100
+            group-hover:bg-[#003B75]
+            transition-colors
+          "
+        >
+          <Icon
+            size={18}
+            className="text-[#003B75] group-hover:text-white"
+            strokeWidth={2.2}
+          />
+        </div>
 
-                    <div>
-                      <h2 className="text-[14px] font-semibold text-[#0B4D9B]">
-                        {section.title}
-                      </h2>
+        <div>
+          <h2 className="text-[14px] font-semibold text-[#003B75]">
+            {section.title}
+          </h2>
 
-                      <p className="mt-0.5 text-[11px] leading-4 text-slate-500">
-                        {section.description}
-                      </p>
-                    </div>
-                  </div>
+          <p className="mt-0.5 text-[11px] leading-4 text-slate-500">
+            {section.description}
+          </p>
+        </div>
+      </div>
 
-                  <ChevronRight
-                    size={18}
-                    className="text-amber-500 transition-transform group-hover:translate-x-1"
-                  />
-                </div>
-              </Link>
-            );
+      <ChevronRight
+        size={18}
+        className="
+          text-amber-500
+          transition-all
+          duration-200
+          group-hover:translate-x-1
+        "
+      />
+    </div>
+  </Link>
+);
           })}
         </div>
       </div>
