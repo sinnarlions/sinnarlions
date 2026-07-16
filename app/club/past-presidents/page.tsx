@@ -12,6 +12,8 @@ interface PastPresident {
   id: string;
   year: string;
   memberCode: string;
+  presidentName?: string;
+  isCurrentMember?: boolean;
   displayOrder: number;
 }
 
@@ -26,6 +28,8 @@ interface PastPresidentItem {
   year: string;
   displayOrder: number;
   member?: Member;
+  presidentName?: string;
+  isCurrentMember?: boolean;
 }
 
 export default function PastPresidentsPage() {
@@ -59,14 +63,16 @@ export default function PastPresidentsPage() {
           ...(doc.data() as Omit<PastPresident, "id">),
         };
 
-        return {
-          id: pp.id,
-          year: pp.year,
-          displayOrder: pp.displayOrder,
-          member: members.find(
-            (m) => m.memberCode === pp.memberCode
-          ),
-        };
+       return {
+  id: pp.id,
+  year: pp.year,
+  displayOrder: pp.displayOrder,
+  presidentName: pp.presidentName,
+  isCurrentMember: pp.isCurrentMember,
+  member: members.find(
+    (m) => m.memberCode === pp.memberCode
+  ),
+};
       });
 
       data.sort(
@@ -158,12 +164,14 @@ export default function PastPresidentsPage() {
               </p>
 
               <h2 className="mt-0.5 text-[16px] font-bold text-[#003B75] leading-tight">
-                {item.member?.name || "Unknown Member"}
-              </h2>
+  {item.member?.name || item.presidentName}
+</h2>
 
-              <p className="mt-0.5 text-[11px] font-medium text-gray-500">
-                {item.member?.memberCode || "-"}
-              </p>
+           {item.member && (
+  <p className="mt-0.5 text-[11px] font-medium text-gray-500">
+    {item.member.memberCode}
+  </p>
+)}
             </div>
           ))
         )}
