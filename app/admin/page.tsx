@@ -529,43 +529,43 @@ export default function AdminPage() {
 
         <button
           onClick={() => router.push("/admin/members")}
-          className="flex cursor-pointer items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2.5 shadow-sm transition-all hover:border-[#003B75] hover:shadow-md"
+          className="flex cursor-pointer items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 shadow-sm transition-all hover:border-[#003B75] hover:shadow-md"
         >
           <div className="flex items-center gap-2">
-            <span className="text-lg">👥</span>
+            
             <span className="text-[13px] font-semibold text-[#003B75]">
               Members
             </span>
           </div>
 
-          <span className="text-gray-400">→</span>
+          
         </button>
 
         <button
           onClick={() => router.push("/admin/security")}
-          className="flex cursor-pointer items-center justify-between rounded-xl border border-red-200 bg-white px-4 py-2.5 shadow-sm transition-all hover:border-red-400 hover:shadow-md"
+          className="flex cursor-pointer items-center justify-center rounded-xl border border-red-200 bg-white px-4 py-2.5 shadow-sm transition-all hover:border-red-400 hover:shadow-md"
         >
           <div className="flex items-center gap-2">
-            <span className="text-lg">🔐</span>
+           
             <span className="text-[13px] font-semibold text-[#003B75]">
               Security
             </span>
           </div>
 
-          <span className="text-red-400">→</span>
+         
         </button>
 <button
           onClick={() => router.push("/admin/finance")}
-          className="flex cursor-pointer items-center justify-between rounded-xl border border-red-200 bg-white px-4 py-2.5 shadow-sm transition-all hover:border-red-400 hover:shadow-md"
+          className="flex cursor-pointer items-center justify-center rounded-xl border border-red-200 bg-white px-4 py-2.5 shadow-sm transition-all hover:border-red-400 hover:shadow-md"
         >
           <div className="flex items-center gap-2">
-            <span className="text-lg">🔐</span>
+            
             <span className="text-[13px] font-semibold text-[#003B75]">
               Finance Management
             </span>
           </div>
 
-          <span className="text-red-400">→</span>
+          
         </button>
       </div>
 
