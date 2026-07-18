@@ -13,29 +13,37 @@ import {
 const financeCards = [
   {
     title: "Membership Fees",
-    description:
-      "Manage member fee collection, payment status and pending dues.",
+    description: "Manage member fee collection.",
     href: "/admin/finance/membership-fees",
     icon: CreditCard,
   },
   {
-    title: "Collection Summary",
-    description:
-      "View total collections, pending payments and financial overview.",
-    href: "/admin/finance/summary",
+    title: "Income",
+    description: "Add income transactions.",
+    href: "/admin/finance/income",
     icon: IndianRupee,
   },
   {
-    title: "Receipts",
-    description:
-      "Create and manage payment receipts for club members.",
-    href: "/admin/finance/receipts",
+    title: "Expense",
+    description: "Add expense transactions.",
+    href: "/admin/finance/expense",
     icon: Receipt,
   },
   {
+    title: "Transactions",
+    description: "View all financial transactions.",
+    href: "/admin/finance/transactions",
+    icon: Receipt,
+  },
+  {
+    title: "Categories",
+    description: "Manage income & expense categories.",
+    href: "/admin/finance/categories",
+    icon: BarChart3,
+  },
+  {
     title: "Reports",
-    description:
-      "Generate financial reports and collection analysis.",
+    description: "Financial reports and summaries.",
     href: "/admin/finance/reports",
     icon: BarChart3,
   },
