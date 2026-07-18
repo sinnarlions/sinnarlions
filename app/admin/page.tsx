@@ -485,28 +485,36 @@ export default function AdminPage() {
           )}
         </div>
 
-{/* Secretary Tools */}
-{currentRole === "Secretary" && (
+{/* Departmental Tools (Secretary, Treasurer & Super Admin) */}
+{(currentRole === "Secretary" || currentRole === "Treasurer" || isSuperAdmin) && (
   <>
     <h2 className="text-xl font-bold text-gray-800 mt-10 mb-4">
-      Secretary Tools
+      Department Tools
     </h2>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <Link
-        href="/admin/meetings"
-        className="bg-white rounded-xl shadow p-6 hover:shadow-lg transition"
-      >
-        <div className="text-4xl mb-3">📅</div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      
+      {/* Meetings Card */}
+      {(currentRole === "Secretary" || isSuperAdmin) && (
+        <Link href="/admin/meetings" className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition flex items-center gap-4">
+          <div className="text-3xl">📅</div>
+          <div>
+            <h3 className="text-sm font-bold text-[#003B75]">Meetings</h3>
+            <p className="text-xs text-gray-500">Manage club meetings</p>
+          </div>
+        </Link>
+      )}
 
-        <h3 className="text-lg font-bold">
-          Meetings Management
-        </h3>
-
-        <p className="text-gray-600 text-sm mt-2">
-          Create and manage club meetings.
-        </p>
-      </Link>
+      {/* Finance Card */}
+      {(currentRole === "Treasurer" || isSuperAdmin) && (
+        <Link href="/admin/finance" className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition flex items-center gap-4">
+          <div className="text-3xl">💰</div>
+          <div>
+            <h3 className="text-sm font-bold text-[#003B75]">Finance</h3>
+            <p className="text-xs text-gray-500">Manage club funds</p>
+          </div>
+        </Link>
+      )}
     </div>
   </>
 )}
@@ -554,19 +562,7 @@ export default function AdminPage() {
 
          
         </button>
-<button
-          onClick={() => router.push("/admin/finance")}
-          className="flex cursor-pointer items-center justify-center rounded-xl border border-red-200 bg-white px-4 py-2.5 shadow-sm transition-all hover:border-red-400 hover:shadow-md"
-        >
-          <div className="flex items-center gap-2">
-            
-            <span className="text-[13px] font-semibold text-[#003B75]">
-              Finance Management
-            </span>
-          </div>
 
-          
-        </button>
       </div>
 
     </section>
