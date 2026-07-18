@@ -754,18 +754,37 @@ const receiptNo =
     <main className="min-h-screen bg-slate-50 p-4">
       <Link href="/admin/finance" className="flex items-center text-[#003B75] mb-4 font-bold"><ChevronLeft size={18}/> Back</Link>
 
-      {/* डॅशबोर्ड */}
-      <div className="grid grid-cols-3 gap-2 mb-6">
-        <div className="bg-blue-100 p-3 rounded-xl text-center border"><div className="text-[10px] uppercase font-bold">Total</div><div className="text-xl font-black">{totalCouples}</div></div>
-        <div className="bg-green-100 p-3 rounded-xl text-center border"><div className="text-[10px] uppercase font-bold">Paid</div><div className="text-xl font-black">{paidCount}</div></div>
-        <div className="bg-red-100 p-3 rounded-xl text-center border"><div className="text-[10px] uppercase font-bold">Pending</div><div className="text-xl font-black">{pendingCount}</div></div>
-      </div>
+     {/* डॅशबोर्ड - अधिक गडद आणि ठळक */}
+<div className="grid grid-cols-3 gap-2 mb-6">
+  <div className="bg-[#003B75] text-white p-3 rounded-xl text-center shadow-md">
+    <div className="text-[9px] uppercase font-bold opacity-80">Total</div>
+    <div className="text-xl font-black">{totalCouples}</div>
+  </div>
+  <div className="bg-[#15803d] text-white p-3 rounded-xl text-center shadow-md">
+    <div className="text-[9px] uppercase font-bold opacity-80">Paid</div>
+    <div className="text-xl font-black">{paidCount}</div>
+  </div>
+  <div className="bg-[#b91c1c] text-white p-3 rounded-xl text-center shadow-md">
+    <div className="text-[9px] uppercase font-bold opacity-80">Pending</div>
+    <div className="text-xl font-black">{pendingCount}</div>
+  </div>
+</div>
 
-      <div className="flex gap-2 mb-6">
-        {(["All", "Paid", "Pending"] as const).map((f) => (
-          <button key={f} onClick={() => setFilter(f)} className={`px-4 py-1.5 rounded-full text-xs font-bold ${filter === f ? "bg-[#003B75] text-white" : "bg-white border"}`}>{f}</button>
-        ))}
-      </div>
+     <div className="flex gap-2 mb-6">
+  {(["All", "Paid", "Pending"] as const).map((f) => (
+    <button 
+      key={f} 
+      onClick={() => setFilter(f)} 
+      className={`flex-1 py-2 rounded-lg text-[11px] font-bold border transition-all ${
+        filter === f 
+          ? "bg-[#003B75] text-white border-[#003B75]" 
+          : "bg-white text-gray-600 border-gray-300"
+      }`}
+    >
+      {f}
+    </button>
+  ))}
+</div>
 
       <div className="space-y-3">
         {couples.filter(m => filter === "All" ? true : filter === "Paid" ? !!paidMembers[m.memberCode] : !paidMembers[m.memberCode]).map((couple) => (
