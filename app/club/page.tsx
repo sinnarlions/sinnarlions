@@ -17,68 +17,24 @@ import {
 } from "lucide-react";
 
 const clubSections = [
-  {
-  title: "Members Directory",
-  description: "View all club members",
-  href: "/members",
-  icon: Users,
-},
+  // --- Leadership & Members ---
+  { title: "Members Directory", description: "View all club members", href: "/members", icon: Users },
+  { title: "Office Bearers", description: "Current club leadership", href: "/club/board", icon: Briefcase },
+  { title: "Directors", description: "Current Board Directors", href: "/club/directors", icon: Building2 },
+  { title: "Cabinet Officers", description: "District cabinet leadership", href: "/club/cabinet-officers", icon: Shield },
+  { title: "Committees", description: "Committee structure and members", href: "/club/committees", icon: Users },
   
-  {
-    title: "Office Bearers",
-    description: "Current club leadership",
-    href: "/club/board",
-    icon: Briefcase,
-  },
-  {
-  title: "Directors",
-  description: "Current Board Directors",
-  href: "/club/directors",
-  icon: Building2,
-},
- {
-  title: "Cabinet Officers",
-  description: "District cabinet leadership",
-  href: "/club/cabinet-officers",
-  icon: Shield,
-},
-
-  {
-    title: "Committees",
-    description: "Committee structure and members",
-    href: "/club/committees",
-    icon: Users,
-  },
-  {
-    title: "Past Presidents",
-    description: "Year-wise list of past presidents",
-    href: "/club/past-presidents",
-    icon: Award,
-  },
-  {
-    title: "Club Information",
-    description: "Club details and history",
-    href: "/club/information",
-    icon: ScrollText,
-  },
-  {
-    title: "Club Awards",
-    description: "Awards and recognitions",
-    href: "/club/awards",
-    icon: Trophy,
-  },
-  {
-    title: "Signature Projects",
-    description: "Major service projects",
-    href: "/club/projects",
-    icon: Target,
-  },
-  {
-  title: "ध्वज वंदन",
-  description: "National Flag Salutation",
-  href: "/club/flag-salutation",
-  icon: ScrollText,
-},
+  // --- Club Profile & History ---
+  { title: "Club Information", description: "Club details and history", href: "/club/information", icon: ScrollText },
+  { title: "Past Presidents", description: "Year-wise list of past presidents", href: "/club/past-presidents", icon: Award },
+  { title: "Club Awards", description: "Awards and recognitions", href: "/club/awards", icon: Trophy },
+  
+  // --- Projects & Services (नवीन पेजेस) ---
+  { title: "Permanent Projects", description: "Our long-term service initiatives", href: "/club/permanent-projects", icon: Target },
+  { title: "Signature Activities", description: "Our major annual events", href: "/club/signature-activities", icon: Flag },
+  
+  // --- Others ---
+  { title: "ध्वज वंदन", description: "National Flag Salutation", href: "/club/flag-salutation", icon: ScrollText },
 ];
 
 export default function ClubPage() {

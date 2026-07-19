@@ -152,21 +152,19 @@ export default function MemberProfilePage() {
       {/* Content */}
       <div className="mt-4 space-y-2.5 px-4">
         <SectionCard title="Professional Info" icon={<Briefcase size={14} />}>
-          <div className="grid grid-cols-2 divide-x divide-[#003B75]/10">
-  <InfoRow
-    label="Profession"
-    value={member.profession}
-  />
+         <InfoRow
+  label="Profession"
+  value={member.profession}
+/>
+
 <InfoRow
   label="Designation"
   value={member.jobTitle}
-  
-  />
-</div>
-<InfoRow
-    label="Company"
-    value={member.companyName}
+/>
 
+<InfoRow
+  label="Company"
+  value={member.companyName}
 />
         </SectionCard>
 
@@ -179,7 +177,7 @@ export default function MemberProfilePage() {
           <InfoRow label="Birthday" value={formatWithoutYear(member.dob)} />
         </SectionCard>
 
-        <SectionCard title="Family & Lions" icon={<Heart size={14} />}>
+        <SectionCard title="Family" icon={<Heart size={14} />}>
           <div className="grid grid-cols-2 divide-x divide-gray-100">
              <InfoRow label="Spouse" value={member.spouseName} />
              <InfoRow label="Anniversary" value={formatWithoutYear(member.anniversary)} />
@@ -187,6 +185,22 @@ export default function MemberProfilePage() {
           <InfoRow label="Children" value={member.childrenNames} multiline />
           <InfoRow label="Awards" value={member.awardsAchievements} multiline />
         </SectionCard>
+        <SectionCard
+  title="Lions Profile"
+  icon={<Shield size={14} />}
+>
+  <InfoRow
+    label="Past Positions Held"
+    value={member.pastPositions}
+    multiline
+  />
+
+  <InfoRow
+    label="Awards"
+    value={member.awardsAchievements}
+    multiline
+  />
+</SectionCard>
       </div>
     </main>
   );

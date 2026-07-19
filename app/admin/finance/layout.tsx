@@ -34,7 +34,7 @@ export default function FinanceLayout({ children }: { children: React.ReactNode 
         <div className="flex items-center gap-3">
           <Image src="/logo.png" alt="Lions Logo" width={40} height={40} />
           <div>
-            <h1 className="text-lg font-black uppercase leading-none">Lions Connect</h1>
+            <h1 className="text-lg font-black uppercase text-center leading-none">Lions Connect</h1>
             <p className="text-[10px] text-[#F2A900] font-bold">Finance Department</p>
           </div>
         </div>

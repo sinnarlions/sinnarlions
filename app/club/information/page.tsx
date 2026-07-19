@@ -143,238 +143,113 @@ export default function ClubInformationPage() {
 
       <div className="mx-auto mt-5 max-w-md space-y-4 px-4">
 
-        {/* Club Details */}
-
-        <div className="rounded-2xl bg-white p-5 shadow-sm">
-
-          <h2 className="mb-4 text-lg font-bold text-[#003B75]">
-            Club Details
-          </h2>
-
-          <div className="space-y-3 text-sm">
-
-            <div className="flex justify-between gap-3">
-              <span className="font-semibold text-gray-500">
-                Club Name
-              </span>
-
-              <span className="text-right font-bold text-gray-800">
-                {club.clubName}
-              </span>
-            </div>
-
-            <div className="flex justify-between gap-3">
-              <span className="font-semibold text-gray-500">
-                Club ID
-              </span>
-
-              <span className="font-bold text-gray-800">
-                {club.clubId}
-              </span>
-            </div>
-
-            <div className="flex justify-between gap-3">
-              <span className="font-semibold text-gray-500">
-                Charter Date
-              </span>
-
-              <span className="font-bold text-gray-800">
-                {club.charterDate}
-              </span>
-            </div>
-
-            <div className="flex justify-between gap-3">
-              <span className="font-semibold text-gray-500">
-                Charter President
-              </span>
-
-              <span className="text-right font-bold text-[#003B75]">
-                {charterPresident?.name || "-"}
-              </span>
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* District Information */}
-
-        <div className="rounded-2xl bg-white p-5 shadow-sm">
-
-          <h2 className="mb-4 text-lg font-bold text-[#003B75]">
-            District Information
-          </h2>
-
-          <div className="space-y-3 text-sm">
-
-            <div className="flex justify-between">
-  <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-    District
-  </span>
-
-  <span className="text-sm font-semibold text-slate-800">
-    {club.district}
-  </span>
+        {/* {/* Club Details (Compact & Bold for Mobile) */}
+<div className="rounded-2xl bg-white p-5 shadow-sm space-y-4">
+  <h2 className="text-xs font-black uppercase tracking-widest text-[#003B75]">Club Details</h2>
+  <div className="grid grid-cols-2 gap-x-4 gap-y-4">
+    <div className="space-y-0.5">
+      <p className="text-[10px] uppercase font-bold text-gray-400">Club Name</p>
+      <p className="text-sm font-extrabold text-[#003B75] leading-tight">{club.clubName}</p>
+    </div>
+    <div className="space-y-0.5">
+      <p className="text-[10px] uppercase font-bold text-gray-400">Club ID</p>
+      <p className="text-sm font-extrabold text-gray-800">{club.clubId}</p>
+    </div>
+   <div className="space-y-0.5">
+  <p className="text-[10px] uppercase font-bold text-gray-400">Charter Date</p>
+  <p className="text-sm font-extrabold text-gray-800">
+    {new Date(club.charterDate).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    })}
+  </p>
+</div>
+    <div className="space-y-0.5">
+      <p className="text-[10px] uppercase font-bold text-gray-400">Charter President</p>
+      <p className="text-sm font-extrabold text-gray-800 truncate">{charterPresident?.name || "-"}</p>
+    </div>
+  </div>
 </div>
 
-           <div className="flex justify-between">
-  <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-    Region
-  </span>
-
-  <span className="text-sm font-semibold text-slate-800">
-    {club.region}
-  </span>
+{/* District Information (Compact & Bold for Mobile) */}
+<div className="rounded-2xl bg-white p-5 shadow-sm space-y-4">
+  <h2 className="text-xs font-black uppercase tracking-widest text-[#003B75]">District Information</h2>
+  <div className="grid grid-cols-2 gap-x-4 gap-y-4">
+    <div className="space-y-0.5">
+      <p className="text-[10px] uppercase font-bold text-gray-400">District / Region</p>
+      <p className="text-sm font-extrabold text-gray-800">{club.district} / {club.region}</p>
+    </div>
+    <div className="space-y-0.5">
+      <p className="text-[10px] uppercase font-bold text-gray-400">Zone</p>
+      <p className="text-sm font-extrabold text-gray-800">{club.zone}</p>
+    </div>
+    <div className="space-y-0.5">
+      <p className="text-[10px] uppercase font-bold text-gray-400">Region Chair</p>
+      <p className="text-sm font-extrabold text-gray-800 leading-tight">{club.regionChairperson}</p>
+    </div>
+    <div className="space-y-0.5">
+      <p className="text-[10px] uppercase font-bold text-gray-400">Zone Chair</p>
+      <p className="text-sm font-extrabold text-gray-800 leading-tight">{club.zoneChairperson}</p>
+    </div>
+  </div>
 </div>
 
-           <div className="flex justify-between">
-  <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-    Zone
-  </span>
-
-  <span className="text-sm font-semibold text-slate-800">
-    {club.zone}
-  </span>
+{/* Meeting Information */}
+<div className="rounded-2xl bg-white p-5 shadow-sm">
+  <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-[#003B75]">Meeting Information</h2>
+  <div className="space-y-4 text-sm">
+    <div className="flex justify-between items-center border-b border-slate-50 pb-2">
+      <span className="text-[11px] font-bold uppercase text-slate-400">Meeting Day</span>
+      <span className="font-extrabold text-slate-800">{club.meetingDay}</span>
+    </div>
+    <div className="flex justify-between items-center border-b border-slate-50 pb-2">
+      <span className="text-[11px] font-bold uppercase text-slate-400">Meeting Time</span>
+      <span className="font-extrabold text-slate-800">{club.meetingTime}</span>
+    </div>
+    <div className="space-y-1">
+      <span className="text-[11px] font-bold uppercase text-slate-400">Meeting Venue</span>
+      <p className="font-bold text-slate-800 leading-snug">{club.meetingVenue}</p>
+    </div>
+  </div>
 </div>
 
-            <div className="flex justify-between gap-3">
-              <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                Region Chairperson
-              </span>
+{/* Contact Information */}
+<div className="rounded-2xl bg-white p-5 shadow-sm">
+  <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-[#003B75]">Contact Information</h2>
+  <div className="space-y-4 text-sm">
+    <div className="space-y-1">
+      <p className="text-[11px] font-bold uppercase text-slate-400">Address</p>
+      <p className="font-bold text-slate-800 leading-snug whitespace-pre-wrap">{club.clubAddress}</p>
+    </div>
+    <div className="space-y-1">
+      <p className="text-[11px] font-bold uppercase text-slate-400">Email</p>
+      <p className="font-bold text-[#003B75] break-all">{club.clubEmail}</p>
+    </div>
+    <div className="space-y-1">
+      <p className="text-[11px] font-bold uppercase text-slate-400">Website</p>
+      <p className="font-bold text-blue-600 break-all">{club.clubWebsite}</p>
+    </div>
+  </div>
+</div>
 
-              <span className="text-right text-sm font-semibold text-slate-800">
-                {club.regionChairperson}
-              </span>
-            </div>
+{/* Explore More */}
+<div className="rounded-2xl bg-white p-5 shadow-sm">
+  <h2 className="mb-4 text-xs font-black uppercase tracking-widest text-[#003B75]">Explore More</h2>
+  <div className="space-y-2.5">
+    <button onClick={() => router.push("/club/history")} className="flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-4 transition hover:border-[#003B75] hover:bg-white">
+      <p className="font-extrabold text-[#003B75]">📖 Club History</p>
+      <span className="text-xl font-bold text-slate-300">›</span>
+    </button>
+    <button onClick={() => router.push("/club/vision")} className="flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-4 transition hover:border-[#003B75] hover:bg-white">
+      <p className="font-extrabold text-[#003B75]">🎯 Our Vision</p>
+      <span className="text-xl font-bold text-slate-300">›</span>
+    </button>
+  </div>
+</div>
+       
 
-            <div className="flex justify-between gap-3">
-              <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                Zone Chairperson
-              </span>
-
-              <span className="text-right text-sm font-semibold text-slate-800">
-                {club.zoneChairperson}
-              </span>
-            </div>
-
-          </div>
-
-        </div>
-                {/* Meeting Information */}
-
-        <div className="rounded-2xl bg-white p-5 shadow-sm">
-
-          <h2 className="mb-4 text-lg font-bold text-[#003B75]">
-            Meeting Information
-          </h2>
-
-          <div className="space-y-3 text-sm">
-
-            <div className="flex justify-between">
-              <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                Meeting Day
-              </span>
-
-              <span className="text-sm font-semibold text-slate-800">
-                {club.meetingDay}
-              </span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="font-semibold text-gray-500">
-                Meeting Time
-              </span>
-
-             <span className="text-sm font-semibold text-slate-800">
-                {club.meetingTime}
-              </span>
-            </div>
-
-            <div className="flex justify-between gap-3">
-              <span className="text-sm font-semibold text-slate-800">
-                Meeting Venue
-              </span>
-
-              <span className="text-right font-bold">
-                {club.meetingVenue}
-              </span>
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* Contact Information */}
-
-        <div className="rounded-2xl bg-white p-5 shadow-sm">
-
-          <h2 className="mb-4 text-lg font-bold text-[#003B75]">
-            Contact Information
-          </h2>
-
-          <div className="space-y-3 text-sm">
-
-            <div>
-              <p className="text-xs font-semibold text-gray-500">
-                Address
-              </p>
-
-              <p className="mt-1 font-medium text-gray-800 whitespace-pre-wrap">
-                {club.clubAddress}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold text-gray-500">
-                Email
-              </p>
-
-              <p className="mt-1 font-medium text-gray-800">
-                {club.clubEmail}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold text-gray-500">
-                Website
-              </p>
-
-              <p className="mt-1 font-medium text-blue-700 break-all">
-                {club.clubWebsite}
-              </p>
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* Club Vision */}
-
-        <div className="rounded-2xl bg-white p-5 shadow-sm">
-
-          <h2 className="mb-4 text-lg font-bold text-[#003B75]">
-            Club Vision
-          </h2>
-
-          <p className="text-sm leading-7 text-gray-700 whitespace-pre-wrap">
-            {club.clubVision}
-          </p>
-
-        </div>
-
-        {/* Club History */}
-
-        <div className="rounded-2xl bg-white p-5 shadow-sm">
-
-          <h2 className="mb-4 text-lg font-bold text-[#003B75]">
-            Club History
-          </h2>
-
-          <p className="text-sm leading-7 text-gray-700 whitespace-pre-wrap">
-            {club.clubHistory}
-          </p>
-
-        </div>
+       
 
       </div>
 

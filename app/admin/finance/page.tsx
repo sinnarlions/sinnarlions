@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import {
   CreditCard,
   IndianRupee,
@@ -53,34 +54,15 @@ export default function FinancePage() {
   return (
     <main className="min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="bg-[#003B75] shadow-md">
-        <header className="py-2.5 px-4 max-w-4xl w-full mx-auto text-white relative flex items-center">
-          <div className="absolute left-4">
-            <Image
-              src="/logo.png"
-              alt="Lions Logo"
-              width={44}
-              height={44}
-              className="object-contain"
-            />
-          </div>
 
-          <div className="flex-1 text-center min-w-0">
-            <h1 className="text-xl md:text-2xl font-black text-white uppercase leading-none tracking-tight">
-              Lions Connect
-            </h1>
-
-            <h2 className="text-[10px] md:text-xs font-black text-[#F2A900] leading-none truncate mt-0.5">
-              Lions Club of Sinnar City
-            </h2>
-
-            <p className="text-[7px] md:text-[8px] tracking-[0.25em] font-bold text-white/40 uppercase mt-1 leading-none">
-              CONNECT • SERVE • CELEBRATE
-            </p>
-          </div>
-        </header>
-      </div>
-
+      
+<Link
+  href="/admin"
+  className="inline-flex items-center gap-2 text-[#003B75] font-semibold mb-4"
+>
+  <ArrowLeft size={18} />
+  Back to Admin
+</Link>
       {/* Page Title */}
       <section className="mx-auto max-w-4xl px-4 pt-6">
         <div className="rounded-2xl bg-white border border-[#F2A900]/20 shadow-sm p-5">
