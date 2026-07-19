@@ -185,11 +185,11 @@ export default function ClubInformationPage() {
       <p className="text-sm font-extrabold text-gray-800">{club.zone}</p>
     </div>
     <div className="space-y-0.5">
-      <p className="text-[10px] uppercase font-bold text-gray-400">Region Chair</p>
+      <p className="text-[10px] uppercase font-bold text-gray-400">Region Chairperson</p>
       <p className="text-sm font-extrabold text-gray-800 leading-tight">{club.regionChairperson}</p>
     </div>
     <div className="space-y-0.5">
-      <p className="text-[10px] uppercase font-bold text-gray-400">Zone Chair</p>
+      <p className="text-[10px] uppercase font-bold text-gray-400">Zone Chairperson</p>
       <p className="text-sm font-extrabold text-gray-800 leading-tight">{club.zoneChairperson}</p>
     </div>
   </div>

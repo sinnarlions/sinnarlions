@@ -297,13 +297,11 @@ setCouples(uniqueCouples);
     54
   );
 
+ doc.setFont("helvetica", "bold");
+  doc.setFontSize(12); // फॉन्ट मोठा केला
+  doc.text(data.memberName, 48, 54);
+  doc.setFontSize(10); // पुन्हा नॉर्मल केला
   doc.setFont("helvetica", "normal");
-
-  doc.text(
-    data.memberName,
-    48,
-    54
-  );
 
   doc.setFont("helvetica", "bold");
 
@@ -322,162 +320,65 @@ setCouples(uniqueCouples);
   );
 
   // RIGHT
-
   doc.setFont("helvetica", "bold");
 
-  doc.text(
-    "Date",
-    118,
-    44
-  );
-
+  doc.text("Date", 118, 44);
   doc.setFont("helvetica", "normal");
-
-  doc.text(
-    data.paymentDate,
-    150,
-    44
-  );
+  const formattedDate = new Date(data.paymentDate).toLocaleDateString('en-GB');
+  doc.text(formattedDate, 160, 44); // 160 वर सरकवले
 
   doc.setFont("helvetica", "bold");
-
-  doc.text(
-    "Lion Year",
-    118,
-    54
-  );
-
+  doc.text("Lion Year", 118, 54);
   doc.setFont("helvetica", "normal");
-
-  doc.text(
-    data.lionYear,
-    150,
-    54
-  );
+  doc.text(data.lionYear, 160, 54); // 160 वर सरकवले
 
   doc.setFont("helvetica", "bold");
-
-  doc.text(
-    "Membership",
-    118,
-    64
-  );
-
+  doc.text("Membership", 118, 64);
   doc.setFont("helvetica", "normal");
-
-  doc.text(
-    data.membershipType,
-    150,
-    64
-  );
+  doc.text(data.membershipType, 160, 64); // 160 वर सरकवले
 
    // =====================================
-  // MEMBERSHIP FEE TABLE
-  // =====================================
-
+ // [हा जुना autoTable ब्लॉक काढून त्याऐवजी हा वापरा]
   autoTable(doc, {
-    startY: 84,
-
-    margin: {
-      left: 12,
-      right: 12,
-    },
-
+    startY: 75, // टेबल थोडे वर घेतले
+    margin: { left: 12, right: 12 },
     theme: "grid",
-
     head: [["#", "Particular", "Amount"]],
-
-    headStyles: {
-      fillColor: [0, 59, 117],
-      textColor: 255,
-      halign: "center",
-      fontStyle: "bold",
-    },
-
+    headStyles: { fillColor: [0, 59, 117], textColor: 255, halign: "center", fontStyle: "bold" },
     body: [
-      [
-        "1",
-        `${data.membershipType} Membership Fee`,
-        "Rs" + data.totalAmount.toLocaleString(),
-      ],
-
-      [
-        "",
-        "TOTAL RECEIVED",
-        "Rs " + data.totalAmount.toLocaleString(),
-      ],
+      ["1", `${data.membershipType} Membership Fee`, "Rs " + data.totalAmount.toLocaleString()],
+      ["", "TOTAL RECEIVED", "Rs " + data.totalAmount.toLocaleString()],
     ],
-
-    bodyStyles: {
-      fontSize: 10,
-    },
-
-    columnStyles: {
-      0: {
-        halign: "center",
-        cellWidth: 15,
-      },
-
-      2: {
-        halign: "right",
-        cellWidth: 45,
-      },
-    },
+    bodyStyles: { fontSize: 10 },
+    columnStyles: { 0: { halign: "center", cellWidth: 15 }, 2: { halign: "right", cellWidth: 45 } },
   });
 
-  const tableEnd =
-    (doc as any).lastAutoTable.finalY;
-
+  const tableEnd = (doc as any).lastAutoTable.finalY;
   // =====================================
   // GREEN TOTAL BOX
   // =====================================
 
+ // =====================================
+  // GREEN TOTAL BOX (सुधारित)
+  // =====================================
+
   doc.setFillColor(228, 248, 228);
-
-  doc.roundedRect(
-    125,
-    tableEnd + 8,
-    65,
-    20,
-    3,
-    3,
-    "F"
-  );
-
+  doc.roundedRect(125, tableEnd + 8, 65, 20, 3, 3, "F");
+  
   doc.setDrawColor(0, 120, 0);
+  doc.roundedRect(125, tableEnd + 8, 65, 20, 3, 3);
 
-  doc.roundedRect(
-    125,
-    tableEnd + 8,
-    65,
-    20,
-    3,
-    3
-  );
+  // बॉक्सचा मध्य (125 + 65/2) = 157.5 
+  const boxCenter = 157.5; 
 
   doc.setFont("helvetica", "bold");
-
   doc.setFontSize(10);
-
-  doc.text(
-    "TOTAL PAID",
-    157,
-    tableEnd + 15,
-    {
-      align: "center",
-    }
-  );
+  // 'TOTAL PAID' सेंटरला
+  doc.text("TOTAL PAID", boxCenter, tableEnd + 15, { align: "center" });
 
   doc.setFontSize(14);
-
-  doc.text(
-    "Rs" + data.totalAmount.toLocaleString(),
-    157,
-    tableEnd + 22,
-    {
-      align: "right",
-    }
-  );
+  // रक्कमही आता सेंटरला अलाईन केली
+  doc.text("Rs " + data.totalAmount.toLocaleString(), boxCenter, tableEnd + 22, { align: "center" });
 
   // =====================================
   // PAYMENT DETAILS
@@ -561,10 +462,19 @@ setCouples(uniqueCouples);
 
   doc.setFont("helvetica", "normal");
 
+  // Amount in words logic
+  const numToWords = (n: number): string => {
+    const a = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+    const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+    if (n < 20) return a[n];
+    if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? "-" + a[n % 10] : "");
+    if (n < 1000) return a[Math.floor(n / 100)] + " Hundred " + (n % 100 !== 0 ? "and " + numToWords(n % 100) : "");
+    if (n < 1000000) return numToWords(Math.floor(n / 1000)) + " Thousand " + (n % 1000 !== 0 ? numToWords(n % 1000) : "");
+    return n.toString();
+  };
+
   doc.text(
-    "Rupees " +
-      data.totalAmount.toLocaleString() +
-      " Only",
+    "Rupees " + numToWords(data.totalAmount) + " Only",
     58,
     infoY + 38
   );
