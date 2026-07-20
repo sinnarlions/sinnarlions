@@ -21,6 +21,7 @@ export default function EditMeetingPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [agenda, setAgenda] = useState<any[]>([]);  
   const [formData, setFormData] = useState({
     meetingType: "",
@@ -29,11 +30,29 @@ export default function EditMeetingPage() {
     meetingTime: "",
     venue: "",
     announcement: "",
+    status: "",
   });
 
-  useEffect(() => {
+useEffect(() => {
+  const memberData = localStorage.getItem("member");
+
+  if (!memberData) {
+    router.replace("/");
+    return;
+  }
+
+  const user = JSON.parse(memberData);
+
+  if (
+    user.isSuperAdmin ||
+    user.currentLionsRole === "Secretary"
+  ) {
+    setCurrentUser(user);
     loadMeeting();
-  }, []);
+  } else {
+    router.replace("/");
+  }
+}, [router]);
 
   const loadMeeting = async () => {
     try {
@@ -62,6 +81,7 @@ if (agendaSnap.exists()) {
         meetingTime: meeting.meetingTime || "",
         venue: meeting.venue || "",
         announcement: meeting.announcement || "",
+        status: meeting.status || "Draft",
       });
 
     } catch (err) {
@@ -72,6 +92,43 @@ if (agendaSnap.exists()) {
     }
   };
 
+  const handlePublish = async () => {
+  if (!confirm("मीटिंग Publish करायची आहे का?")) return;
+
+  try {
+    const batch = writeBatch(db);
+
+    const meetingRef = doc(db, "meetings", meetingId);
+    const agendaRef = doc(db, "meetingAgendas", meetingId);
+
+    batch.update(meetingRef, {
+      status: "Upcoming",
+      publishedAt: serverTimestamp(),
+      publishedBy: currentUser?.name,
+      updatedAt: serverTimestamp(),
+    });
+
+    batch.update(agendaRef, {
+      published: true,
+      locked: true,
+      publishedAt: serverTimestamp(),
+      publishedBy: currentUser?.name,
+      updatedAt: serverTimestamp(),
+    });
+
+    await batch.commit();
+setFormData((prev) => ({
+  ...prev,
+  status: "Published",
+}));
+    alert("Meeting Published Successfully.");
+
+    router.push(`/admin/meetings/${meetingId}/view`);
+  } catch (err) {
+    console.error(err);
+    alert("Unable to publish meeting.");
+  }
+};
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -414,7 +471,15 @@ await batch.commit();
           >
             {saving ? "Updating..." : "Update Meeting"}
           </button>
-
+{formData.status !== "Published" && (
+  <button
+    type="button"
+    onClick={handlePublish}
+    className="w-full py-4 rounded-xl font-bold text-white bg-green-600 hover:bg-green-700"
+  >
+    🚀 Publish Meeting
+  </button>
+)}
         </form>
 
       </div>

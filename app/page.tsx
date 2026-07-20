@@ -114,6 +114,7 @@ if (saved && saved.id && saved.sessionId && !saved.isSuperAdmin) {
   const loadCelebrations = async () => {
     const snapshot = await getDocs(collection(db, "members"));
     const today = new Date();
+today.setHours(0, 0, 0, 0);
     const todayDay = today.getDate();
     const todayMonth = today.getMonth() + 1;
     const data: any[] = [];
@@ -207,6 +208,7 @@ const loadUpcomingMeeting = async () => {
   const today = new Date();
 
   const meetings = snapshot.docs
+  
     .map(doc => ({
       id: doc.id,
       ...doc.data()

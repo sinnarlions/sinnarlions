@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import {
@@ -14,13 +15,40 @@ import { db } from "@/src/firebase/config";
 import { Meeting } from "@/src/types/meeting";
 
 export default function MeetingsPage() {
+  const router = useRouter();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState("");
 
-  useEffect(() => {
-    loadMeetings();
-  }, []);
+ useEffect(() => {
+  const checkAccess = () => {
+    const memberData = localStorage.getItem("member");
+
+    if (!memberData) {
+      router.replace("/");
+      return;
+    }
+
+    const user = JSON.parse(memberData);
+
+    if (
+      user.isSuperAdmin ||
+      user.currentLionsRole === "Secretary"
+    ) {
+      loadMeetings();
+    } else {
+      router.replace("/");
+    }
+  };
+
+  checkAccess();
+
+  window.addEventListener("pageshow", checkAccess);
+
+  return () => {
+    window.removeEventListener("pageshow", checkAccess);
+  };
+}, [router]);
 
   const loadMeetings = async () => {
     try {
