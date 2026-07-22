@@ -54,11 +54,8 @@ const [isButtonDisabled, setIsButtonDisabled] = useState(false);
             </div>
 
             <div className="text-center space-y-2">
-              <h2 className="text-xl md:text-2xl
-tracking-[0.4em]
-font-semibold tracking-[0.3em] uppercase text-yellow-500 font-medium">Lions Club of Sinnar City</h2>
-              <h1 className="text-5xl md:text-7xl font-extrabold
-text-6xl md:text-8xl tracking-tight">LionsConnect</h1>
+              <h2 className="text-xl md:text-2xl tracking-[0.35em] uppercase text-yellow-500 font-semibold">Lions Club of Sinnar City</h2>
+              <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight">LionsConnect</h1>
               <p className="text-xl md:text-2xl text-blue-100 font-light italic">CONNECT • SERVE • CELEBRATE</p>
             </div>
 <div className="w-32 h-1 bg-yellow-500 rounded-full mb-6"/>
@@ -107,9 +104,9 @@ text-6xl md:text-8xl tracking-tight">LionsConnect</h1>
     LionsConnect Version 1.0
   </p>
 
-  <p className="mt-2 text-sm text-white/70">
-    Developed by Lion Jitendra Jagtap
-  </p>
+  <p className="mt-2 text-base md:text-lg font-semibold text-white/80">
+  Developed by Lion Jitendra Jagtap
+</p>
 </footer>
     </main>
   );
