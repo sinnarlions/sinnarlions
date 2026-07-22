@@ -147,12 +147,17 @@ export default function MyProfilePage() {
 
           if (result.success) {
             const uploadedUrl = result.data.url;
-            
-            await updateDoc(doc(db, "members", member.id), {
-              profileImage: uploadedUrl,
-            });
+console.log("Member ID:", member.id);
+console.log("Uploaded URL:", uploadedUrl);
+           console.log("Updating Firestore...");
+           await updateDoc(doc(db, "members", member.id), {
+  photoUrl: uploadedUrl,
+});
 
-            setMember((prev: any) => ({ ...prev, profileImage: uploadedUrl }));
+setMember((prev: any) => ({
+  ...prev,
+  photoUrl: uploadedUrl,
+}));
             alert("Profile photo updated successfully 📸");
           } else {
             alert("Failed to upload image to server.");
