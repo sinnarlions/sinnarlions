@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { db } from "../src/firebase/config";
 import AuthGuard from "@/src/components/AuthGuard";
 import { useRouter } from "next/navigation";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import {
   collection,
   getDocs,
@@ -230,7 +231,7 @@ const loadUpcomingMeeting = async () => {
 };
   return (
     <main className="min-h-screen bg-[#003B75] flex flex-col antialiased font-sans">
-      
+      <PWAInstallPrompt />
       {/* हेडर */}
       <header className="py-2.5 px-4 max-w-4xl w-full mx-auto text-white relative flex items-center">
         <div className="absolute left-4">

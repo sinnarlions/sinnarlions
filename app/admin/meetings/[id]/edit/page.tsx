@@ -101,25 +101,40 @@ if (agendaSnap.exists()) {
     const meetingRef = doc(db, "meetings", meetingId);
     const agendaRef = doc(db, "meetingAgendas", meetingId);
 
-    batch.update(meetingRef, {
-      status: "Upcoming",
-      publishedAt: serverTimestamp(),
-      publishedBy: currentUser?.name,
-      updatedAt: serverTimestamp(),
-    });
+  const finalTitle =
+  formData.meetingType === "इतर"
+    ? formData.customTitle.trim()
+    : formData.meetingType;
+
+batch.update(meetingRef, {
+  meetingType: formData.meetingType,
+  meetingTitle: finalTitle,
+  meetingDate: formData.meetingDate,
+  meetingTime: formData.meetingTime,
+  venue: formData.venue,
+  announcement: formData.announcement,
+
+  status: "Upcoming",
+
+  publishedAt: serverTimestamp(),
+  publishedBy: currentUser?.name,
+  updatedAt: serverTimestamp(),
+});
 
     batch.update(agendaRef, {
-      published: true,
-      locked: true,
-      publishedAt: serverTimestamp(),
-      publishedBy: currentUser?.name,
-      updatedAt: serverTimestamp(),
-    });
+  items: agenda,
+  published: true,
+  locked: true,
+  publishedAt: serverTimestamp(),
+  publishedBy: currentUser?.name,
+  updatedAt: serverTimestamp(),
+});
 
     await batch.commit();
+    
 setFormData((prev) => ({
   ...prev,
-  status: "Published",
+  status: "Upcoming",
 }));
     alert("Meeting Published Successfully.");
 
@@ -464,14 +479,7 @@ await batch.commit();
 >
   + Add Agenda Item
 </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full py-4 rounded-xl font-bold text-white bg-[#003B75] hover:bg-[#00529B] disabled:bg-gray-400"
-          >
-            {saving ? "Updating..." : "Update Meeting"}
-          </button>
-{formData.status !== "Published" && (
+{formData.status === "Draft" && (
   <button
     type="button"
     onClick={handlePublish}
@@ -480,6 +488,16 @@ await batch.commit();
     🚀 Publish Meeting
   </button>
 )}
+         {formData.status === "Upcoming" && (
+  <button
+    type="submit"
+    disabled={saving}
+    className="w-full py-4 rounded-xl font-bold text-white bg-[#003B75] hover:bg-[#00529B] disabled:bg-gray-400"
+  >
+    {saving ? "Updating..." : "Update Meeting"}
+  </button>
+)}
+
         </form>
 
       </div>
