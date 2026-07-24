@@ -259,7 +259,7 @@ className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px
 {/* Current Lions Role */}
 <div className="sm:col-span-2">
               {/* Current Lions Role */}
-              <div className="sm:col-span-2">
+              
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Current Lions Role</label>
                 <select name="currentLionsRole" value={formData.currentLionsRole} onChange={handleChange} className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="Member">Member</option>
@@ -268,7 +268,7 @@ className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px
                   <option value="Treasurer">Treasurer</option>
                   <option value="Vice President">Vice President</option>
                 </select>
-              </div>
+              
 
               {/* Skills */}
               <div className="sm:col-span-2">
