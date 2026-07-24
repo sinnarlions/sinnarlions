@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { db } from "@/src/firebase/config";
 import { QRCodeSVG } from "qrcode.react";
@@ -16,6 +16,7 @@ export default function MyProfilePage() {
   const [showQRModal, setShowQRModal] = useState(false);
   const [completionPercentage, setCompletionPercentage] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [feeStatus, setFeeStatus] = useState<string>("Checking...");
 
   const IMGBB_API_KEY = "5bb2b7c8e03b0f57750176b9d8108ef8";
 
@@ -36,7 +37,6 @@ export default function MyProfilePage() {
     };
   }, [router]);
 
-  // प्रोफाइल कम्प्लिशन (%) लॉजिक
   useEffect(() => {
     if (member) {
       const fieldsToTrack = [
@@ -49,7 +49,7 @@ export default function MyProfilePage() {
         "hobbies",
         "specialSkills",
         "childrenNames",
-        "profileImage"
+        "photoUrl"
       ];
       
       let filledCount = 2; 
@@ -83,10 +83,28 @@ export default function MyProfilePage() {
         return;
       }
 
-      setMember({
+      const memberData: any = {
         id: memberSnap.id,
         ...memberSnap.data(),
-      });
+      };
+      setMember(memberData);
+
+      const primaryCode = memberData.memberCode || loggedInMember.memberCode;
+      if (primaryCode) {
+        const feesQuery = query(
+          collection(db, "membershipFees"),
+          where("primaryMemberCode", "==", primaryCode)
+        );
+        const feesSnap = await getDocs(feesQuery);
+        if (!feesSnap.empty) {
+          setFeeStatus("PAID");
+        } else {
+          setFeeStatus("PENDING");
+        }
+      } else {
+        setFeeStatus("PENDING");
+      }
+
     } catch (error) {
       console.error(error);
       localStorage.removeItem("member");
@@ -96,7 +114,6 @@ export default function MyProfilePage() {
     }
   };
 
-  // 🛠️ फोटो कॉम्प्रेस आणि ऑटो-क्रॉप करण्याचे लॉजिक
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -147,17 +164,14 @@ export default function MyProfilePage() {
 
           if (result.success) {
             const uploadedUrl = result.data.url;
-console.log("Member ID:", member.id);
-console.log("Uploaded URL:", uploadedUrl);
-           console.log("Updating Firestore...");
-           await updateDoc(doc(db, "members", member.id), {
-  photoUrl: uploadedUrl,
-});
+            await updateDoc(doc(db, "members", member.id), {
+              photoUrl: uploadedUrl,
+            });
 
-setMember((prev: any) => ({
-  ...prev,
-  photoUrl: uploadedUrl,
-}));
+            setMember((prev: any) => ({
+              ...prev,
+              photoUrl: uploadedUrl,
+            }));
             alert("Profile photo updated successfully 📸");
           } else {
             alert("Failed to upload image to server.");
@@ -205,8 +219,8 @@ setMember((prev: any) => ({
     return (
       <main className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#0A192F] border-t-[#D4AF37]"></div>
-          <p className="text-[#0A192F] font-bold tracking-wide">Loading Profile...</p>
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#052f6b] border-t-[#D4AF37]"></div>
+          <p className="font-bold tracking-wide" style={{ color: '#052f6b' }}>Loading Profile...</p>
         </div>
       </main>
     );
@@ -222,11 +236,43 @@ setMember((prev: any) => ({
     );
   }
 
+  const renderField = (label: string, value: string, fieldKey: string, isTextArea = false, placeholder = "") => {
+    return (
+      <div className="py-2 border-b border-slate-100 last:border-none">
+        <span className="block text-[11px] font-bold text-slate-400 mb-0.5 tracking-normal leading-tight">{label}</span>
+        {isEditing ? (
+          isTextArea ? (
+            <textarea
+              rows={2}
+              value={member?.[fieldKey] || ""}
+              onChange={(e) => setMember({ ...member, [fieldKey]: e.target.value })}
+              className="w-full rounded-lg border border-[#052f6b] bg-white p-2 text-xs text-slate-800 transition-all focus:outline-none resize-none"
+              placeholder={placeholder}
+            />
+          ) : (
+            <input
+              type="text"
+              value={member?.[fieldKey] || ""}
+              onChange={(e) => setMember({ ...member, [fieldKey]: e.target.value })}
+              className="w-full rounded-lg border border-[#052f6b] bg-white p-2 text-xs text-slate-800 transition-all focus:outline-none"
+              placeholder={placeholder}
+            />
+          )
+        ) : (
+          <p className="text-xs sm:text-sm font-bold text-slate-700">
+            {value || <span className="text-slate-300 font-normal italic">Not provided</span>}
+          </p>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-800 pb-8">
-      {/* --- १. COMPACT HEADER --- */}
-      <div className="border-b border-slate-200 bg-[#0A192F] sticky top-0 z-10 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between">
+    <main className="min-h-screen bg-slate-50 text-slate-800 pb-10">
+      
+      {/* --- हेडर --- */}
+      <div className="border-b border-slate-200 bg-[#052f6b] sticky top-0 z-10 shadow-sm">
+        <div className="max-w-3xl mx-auto px-4 py-2.5 flex items-center justify-between">
           <button
             onClick={() => router.push("/")}
             className="text-[#D4AF37] font-bold hover:text-white transition-colors flex items-center gap-1 text-xs md:text-sm cursor-pointer"
@@ -236,8 +282,8 @@ setMember((prev: any) => ({
           <h1 className="text-sm md:text-base font-black text-white tracking-tight">Lions Connect</h1>
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide shadow-md transition-all active:scale-95 cursor-pointer ${
-              isEditing ? "bg-slate-600 text-white hover:bg-slate-500" : "bg-[#D4AF37] text-[#0A192F] hover:bg-[#F3E5AB]"
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold tracking-wide shadow-md transition-all active:scale-95 cursor-pointer ${
+              isEditing ? "bg-slate-600 text-white hover:bg-slate-500" : "bg-[#D4AF37] text-[#052f6b] hover:bg-[#F3E5AB]"
             }`}
           >
             {isEditing ? "Cancel" : "Edit Profile"}
@@ -245,296 +291,190 @@ setMember((prev: any) => ({
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-3 mt-3">
-        {/* --- २. SLIM HERO CARD (प्रोफाइल फोटोसह) --- */}
-        <div className="bg-[#0A192F] rounded-xl p-3.5 shadow-md relative overflow-hidden text-white">
-          <div className="flex items-center justify-between gap-3 relative z-10">
+      <div className="max-w-3xl mx-auto px-3 mt-3 space-y-3">
+        
+        {/* --- हिरो कार्ड --- */}
+        <div className="bg-[#052f6b] rounded-2xl p-4 shadow-lg relative overflow-hidden text-white">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3.5 text-center sm:text-left relative z-10">
             
-            <div className="flex items-center gap-3 min-w-0">
-              {/* प्रोफाइल इमेज फ्रेम */}
-              <div className="relative shrink-0 flex flex-col items-center">
-                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full border-2 border-[#D4AF37] bg-[#112240] overflow-hidden flex items-center justify-center relative shadow-inner">
-                  {member?.photoUrl ? (
-                    <img src={member.photoUrl} alt="profile" className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="text-3xl">🦁</span>
-                  )}
-                  {uploading && (
-                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-[10px] font-bold text-white animate-pulse">
-                      ...
-                    </div>
-                  )}
-                </div>
-                
-                {/* चेंज फोटो बटण (फक्त एडिट मोडमध्ये) */}
-                {isEditing && (
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                    className="absolute -bottom-1 bg-[#D4AF37] text-[#0A192F] px-1.5 py-0.5 rounded-full text-[9px] font-black shadow-md cursor-pointer hover:scale-105 active:scale-95 transition-transform"
-                  >
-                    📷 Change
-                  </button>
+            <div className="relative shrink-0 flex flex-col items-center">
+              <div className="h-20 w-20 sm:h-22 sm:w-22 rounded-full border-2 border-[#D4AF37] bg-[#073b85] overflow-hidden flex items-center justify-center relative shadow-inner">
+                {member?.photoUrl ? (
+                  <img src={member.photoUrl} alt="profile" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-4xl">🦁</span>
                 )}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handlePhotoChange}
-                  accept="image/*"
-                  className="hidden"
-                />
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-[10px] font-bold text-white animate-pulse">
+                    ...
+                  </div>
+                )}
               </div>
-
-             {/* नावाची माहिती */}
-<div className="space-y-1 min-w-0 flex-1">
-  <span className="bg-[#D4AF37] text-[#0A192F] text-[9px] font-black px-1.5 py-0.5 rounded tracking-wider uppercase inline-block">
-    {member?.memberCode || "LIONS"}
-  </span>
-  
-  {/* सुधारित h2 टॅग */}
-  <h2 className="text-sm sm:text-xl font-bold tracking-tight text-white leading-tight break-normal whitespace-normal">
-    {member?.name}
-  </h2>
-  
-  <p className="text-[11px] md:text-xs text-slate-300 font-medium">
-    🦁 {member?.currentLionsRole || "Club Member"}
-  </p>
-</div>
+              
+              {isEditing && (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="absolute -bottom-1 bg-[#D4AF37] text-[#052f6b] px-2 py-0.5 rounded-full text-[10px] font-black shadow-md cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+                >
+                  📷 Change
+                </button>
+              )}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handlePhotoChange}
+                accept="image/*"
+                className="hidden"
+              />
             </div>
-            
-            {/* बटन्स */}
-            <div className="flex flex-col gap-1.5 shrink-0">
-            {/* 🛠️ बटणाचा पाथ दुरुस्त करा */}
-<button
-  onClick={() => router.push(`/my-profile/id-card`)}
-  className="bg-[#D4AF37] text-[#0A192F] px-2 py-1.5 rounded-lg font-black text-[10px] sm:text-[11px] flex items-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm text-center justify-center"
->
-  🪪 View ID Card
-</button>
-              <button
-                onClick={() => setShowQRModal(true)}
-                className="bg-[#112240] hover:bg-[#172A45] border border-[#D4AF37]/30 text-[#D4AF37] px-2 py-1.5 rounded-lg font-bold text-[10px] sm:text-[11px] flex items-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm text-center justify-center"
-              >
-                📇 Business QR
-              </button>
+
+            <div className="space-y-1 flex-1 min-w-0">
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white leading-tight">
+                {member?.name}
+              </h2>
+              <p className="text-xs sm:text-sm text-[#D4AF37] font-semibold">
+                🦁 {member?.currentLionsRole || "Club Member"}
+              </p>
+              
+              <div className="pt-1.5 flex flex-wrap gap-2 justify-center sm:justify-start">
+                <button
+                  onClick={() => router.push(`/my-profile/id-card`)}
+                  className="bg-[#D4AF37] text-[#052f6b] px-3 py-1.5 rounded-lg font-black text-xs flex items-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
+                >
+                  🪪 View ID Card
+                </button>
+                <button
+                  onClick={() => setShowQRModal(true)}
+                  className="bg-[#073b85] hover:bg-[#0a4aa8] border border-[#D4AF37]/30 text-[#D4AF37] px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1 transition-all active:scale-95 cursor-pointer shadow-sm"
+                >
+                  📇 Business QR
+                </button>
+              </div>
             </div>
 
           </div>
         </div>
 
-        {/* --- ३. प्रोग्रेस बार --- */}
-        <div className="bg-white rounded-xl p-3.5 mt-2.5 shadow-xs border border-slate-200">
-          <div className="flex justify-between items-center mb-1.5">
-            <span className="text-[10px] md:text-xs font-bold text-slate-500 tracking-wide uppercase">📈 Profile Completion Status</span>
-            <span className="text-[#0A192F] font-black text-xs bg-slate-100 px-2 py-0.5 rounded">{completionPercentage}%</span>
+        {/* --- मेंबर कोड आणि फी स्टेटस पट्टी --- */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="bg-white rounded-xl px-3 py-2.5 shadow-xs border border-slate-200 flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-400">Member Code</span>
+            <span className="bg-[#052f6b] text-[#D4AF37] text-xs font-black px-2 py-0.5 rounded">
+              {member?.memberCode || "LIONS"}
+            </span>
+          </div>
+          <div className="bg-white rounded-xl px-3 py-2.5 shadow-xs border border-slate-200 flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-400">Fee Status</span>
+            <span className={`text-xs font-black px-2 py-0.5 rounded ${
+              feeStatus === "PAID" ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
+            }`}>
+              {feeStatus}
+            </span>
+          </div>
+        </div>
+
+        {/* --- प्रोग्रेस बार --- */}
+        <div className="bg-white rounded-xl px-3.5 py-3 shadow-xs border border-slate-200">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-[11px] font-bold text-slate-500 uppercase">📈 Profile Completion Status</span>
+            <span className="font-black text-xs bg-slate-100 px-2 py-0.5 rounded" style={{ color: '#052f6b' }}>{completionPercentage}%</span>
           </div>
           <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
             <div
-              className="bg-gradient-to-r from-[#0A192F] to-[#D4AF37] h-2 rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-[#052f6b] to-[#D4AF37] h-2 rounded-full transition-all duration-500"
               style={{ width: `${completionPercentage}%` }}
             ></div>
           </div>
         </div>
 
-        {/* --- FORM SECTIONS --- */}
-        <div className="space-y-3.5 mt-3">
-          {/* Section: Locked Info */}
-          <div className="bg-white rounded-xl p-3.5 md:p-5 shadow-xs border border-slate-200">
-            <h2 className="text-xs font-bold text-[#0A192F] mb-2.5 border-b border-slate-100 pb-1">🔒 Personal & Admin Info (Locked)</h2>
-            <div className="grid gap-2.5 md:grid-cols-2">
-              <div>
-                <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Full Name (पूर्ण नाव)</label>
-                <div className="w-full rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs text-slate-700 font-semibold">{member?.name || "-"}</div>
+        {/* --- माहिती विभाग --- */}
+        <div className="space-y-3">
+          
+          {/* Section: Personal & Admin Info (Light Gray Background - Locked) */}
+          <div className="bg-slate-100 rounded-2xl px-4 py-3 shadow-xs border border-slate-200">
+            <h2 className="text-[11px] font-bold uppercase tracking-wider mb-1 border-b border-slate-300 pb-1.5 text-slate-600">🔒 Personal & Admin Info (Locked)</h2>
+            <div className="divide-y divide-slate-200">
+              <div className="py-2">
+                <span className="block text-[11px] font-bold text-slate-400 mb-0.5">Mobile Number</span>
+                <p className="text-xs sm:text-sm font-bold text-slate-700">{member?.mobile || "-"}</p>
               </div>
-              <div>
-                <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Mobile Number</label>
-                <div className="w-full rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs text-slate-700 font-semibold">{member?.mobile || "-"}</div>
+              <div className="py-2">
+                <span className="block text-[11px] font-bold text-slate-400 mb-0.5">Date of Birth</span>
+                <p className="text-xs sm:text-sm font-bold text-slate-700">{member?.dob || "-"}</p>
               </div>
-              <div>
-                <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Date of Birth</label>
-                <div className="w-full rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs text-slate-700 font-semibold">{member?.dob || "-"}</div>
+              <div className="py-2">
+                <span className="block text-[11px] font-bold text-slate-400 mb-0.5">Spouse Name</span>
+                <p className="text-xs sm:text-sm font-bold text-slate-700">{member?.spouseName || "-"}</p>
               </div>
-              <div>
-                <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Spouse Name</label>
-                <div className="w-full rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs text-slate-700 font-semibold">{member?.spouseName || "-"}</div>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Wedding Anniversary</label>
-                <div className="w-full rounded-lg bg-slate-50 border border-slate-200 p-2 text-xs text-slate-700 font-semibold">{member?.anniversary || "-"}</div>
+              <div className="py-2">
+                <span className="block text-[11px] font-bold text-slate-400 mb-0.5">Wedding Anniversary</span>
+                <p className="text-xs sm:text-sm font-bold text-slate-700">{member?.anniversary || "-"}</p>
               </div>
             </div>
           </div>
 
-          {/* Section: Contact Info */}
-          <div className="bg-white rounded-xl p-3.5 md:p-5 shadow-xs border border-slate-200">
-            <h2 className="text-xs font-bold text-[#0A192F] mb-2.5 border-b border-slate-100 pb-1">Contact Information</h2>
-            <div className="space-y-2.5">
-              <div>
-                <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Email Address</label>
-                <input
-                  type="email"
-                  value={member?.email || ""}
-                  readOnly={!isEditing}
-                  onChange={(e) => setMember({ ...member, email: e.target.value })}
-                  className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none ${
-                    isEditing ? "bg-white border-[#0A192F] text-slate-800" : "bg-slate-50 border-slate-200 text-slate-500"
-                  }`}
-                  placeholder="Enter email address"
-                />
+          {/* Section: Contact Info (White Background - Editable) */}
+          <div className="bg-white rounded-2xl px-4 py-3 shadow-xs border border-slate-200">
+            <h2 className="text-[11px] font-bold uppercase tracking-wider mb-1 border-b border-slate-200 pb-1.5" style={{ color: '#052f6b' }}>Contact Information</h2>
+            <div>
+              {renderField("Email Address", member?.email, "email", false, "Enter email address")}
+              {renderField("Home Address", member?.address, "address", true, "Enter home address")}
+            </div>
+          </div>
+
+          {/* Section: Professional Info (White Background - Editable) */}
+          <div className="bg-white rounded-2xl px-4 py-3 shadow-xs border border-slate-200">
+            <h2 className="text-[11px] font-bold uppercase tracking-wider mb-1 border-b border-slate-200 pb-1.5" style={{ color: '#052f6b' }}>Professional Information</h2>
+            <div>
+              {renderField("Profession", member?.profession, "profession", false, "e.g. Business Owner")}
+              {renderField("Company Name", member?.companyName, "companyName", false, "Enter company name")}
+              {renderField("Job Title / Designation", member?.jobTitle, "jobTitle", false, "e.g. Proprietor")}
+              {renderField("Business Description", member?.businessDescription, "businessDescription", true, "Describe operations...")}
+            </div>
+          </div>
+
+          {/* Section: Interests & Family (White Background - Editable) */}
+          <div className="bg-white rounded-2xl px-4 py-3 shadow-xs border border-slate-200">
+            <h2 className="text-[11px] font-bold uppercase tracking-wider mb-1 border-b border-slate-200 pb-1.5" style={{ color: '#052f6b' }}>Interests & Family</h2>
+            <div>
+              {renderField("Hobbies", member?.hobbies, "hobbies", false, "e.g. Reading, Traveling")}
+              {renderField("Special Skills", member?.specialSkills, "specialSkills", false, "e.g. Public Speaking")}
+              {renderField("Children Names", member?.childrenNames, "childrenNames", false, "Enter children names")}
+            </div>
+          </div>
+
+          {/* Section: Lions Club History (Light Gray Background - Locked) */}
+          <div className="bg-slate-100 rounded-2xl px-4 py-3 shadow-xs border border-slate-200">
+            <h2 className="text-[11px] font-bold uppercase tracking-wider mb-1 border-b border-slate-300 pb-1.5 text-slate-600">🦁 Lions Club History (Locked)</h2>
+            <div className="divide-y divide-slate-200">
+              <div className="py-2">
+                <span className="block text-[11px] font-bold text-slate-400 mb-0.5">Year Joined</span>
+                <p className="text-xs sm:text-sm font-bold text-slate-700">{member?.yearJoinedLions || "-"}</p>
               </div>
-              <div>
-                <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Home Address</label>
-                <textarea
-                  rows={2}
-                  value={member?.address || ""}
-                  readOnly={!isEditing}
-                  onChange={(e) => setMember({ ...member, address: e.target.value })}
-                  className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none resize-none ${
-                    isEditing ? "bg-white border-[#0A192F] text-slate-800" : "bg-slate-50 border-slate-200 text-slate-500"
-                  }`}
-                  placeholder="Enter home address"
-                />
+              <div className="py-2">
+                <span className="block text-[11px] font-bold text-slate-400 mb-0.5">Current Role</span>
+                <p className="text-xs sm:text-sm font-black text-slate-700">{member?.currentLionsRole || "-"}</p>
+              </div>
+              <div className="py-2">
+                <span className="block text-[11px] font-bold text-slate-400 mb-0.5">Past Positions Held</span>
+                <p className="text-xs sm:text-sm font-bold whitespace-pre-wrap text-slate-700">{member?.pastPositions || "None"}</p>
+              </div>
+              <div className="py-2">
+                <span className="block text-[11px] font-bold text-slate-400 mb-0.5">Awards & Achievements</span>
+                <p className="text-xs sm:text-sm font-bold whitespace-pre-wrap text-slate-700">{member?.awardsAchievements || "None"}</p>
               </div>
             </div>
           </div>
 
-          {/* Section: Professional Info */}
-          <div className="bg-white rounded-xl p-3.5 md:p-5 shadow-xs border border-slate-200">
-            <h2 className="text-xs font-bold text-[#0A192F] mb-2.5 border-b border-slate-100 pb-1">Professional Information</h2>
-            <div className="grid gap-2.5 md:grid-cols-2">
-              <div>
-                <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Profession</label>
-                <input
-                  type="text"
-                  value={member?.profession || ""}
-                  readOnly={!isEditing}
-                  onChange={(e) => setMember({ ...member, profession: e.target.value })}
-                  className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none ${
-                    isEditing ? "bg-white border-[#0A192F] text-slate-800" : "bg-slate-50 border-slate-200 text-slate-500"
-                  }`}
-                  placeholder="e.g. Business Owner"
-                />
-              </div>
-              <div>
-                <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Company Name</label>
-                <input
-                  type="text"
-                  value={member?.companyName || ""}
-                  readOnly={!isEditing}
-                  onChange={(e) => setMember({ ...member, companyName: e.target.value })}
-                  className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none ${
-                    isEditing ? "bg-white border-[#0A192F] text-slate-800" : "bg-slate-50 border-slate-200 text-slate-500"
-                  }`}
-                  placeholder="Enter company name"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Job Title / Designation</label>
-                <input
-                  type="text"
-                  value={member?.jobTitle || ""}
-                  readOnly={!isEditing}
-                  onChange={(e) => setMember({ ...member, jobTitle: e.target.value })}
-                  className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none ${
-                    isEditing ? "bg-white border-[#0A192F] text-slate-800" : "bg-slate-50 border-slate-200 text-slate-500"
-                  }`}
-                  placeholder="e.g. Proprietor"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Business Description</label>
-                <textarea
-                  rows={2}
-                  value={member?.businessDescription || ""}
-                  readOnly={!isEditing}
-                  onChange={(e) => setMember({ ...member, businessDescription: e.target.value })}
-                  className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none resize-none ${
-                    isEditing ? "bg-white border-[#0A192F] text-slate-800" : "bg-slate-50 border-slate-200 text-slate-500"
-                  }`}
-                  placeholder="Describe operations..."
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Section: Extra Info */}
-          <div className="bg-white rounded-xl p-3.5 md:p-5 shadow-xs border border-slate-200">
-            <h2 className="text-xs font-bold text-[#0A192F] mb-2.5 border-b border-slate-100 pb-1">Interests & Family</h2>
-            <div className="space-y-2.5">
-              <div>
-                <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Hobbies</label>
-                <input
-                  type="text"
-                  value={member?.hobbies || ""}
-                  readOnly={!isEditing}
-                  onChange={(e) => setMember({ ...member, hobbies: e.target.value })}
-                  className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none ${
-                    isEditing ? "bg-white border-[#0A192F] text-slate-800" : "bg-slate-50 border-slate-200 text-slate-500"
-                  }`}
-                  placeholder="e.g. Reading, Traveling"
-                />
-              </div>
-              <div>
-                <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Special Skills</label>
-                <input
-                  type="text"
-                  value={member?.specialSkills || ""}
-                  readOnly={!isEditing}
-                  onChange={(e) => setMember({ ...member, specialSkills: e.target.value })}
-                  className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none ${
-                    isEditing ? "bg-white border-[#0A192F] text-slate-800" : "bg-slate-50 border-slate-200 text-slate-500"
-                  }`}
-                  placeholder="e.g. Public Speaking"
-                />
-              </div>
-              <div>
-                <label className="block text-[9px] font-bold uppercase text-slate-500 mb-0.5">Children Names</label>
-                <input
-                  type="text"
-                  value={member?.childrenNames || ""}
-                  readOnly={!isEditing}
-                  onChange={(e) => setMember({ ...member, childrenNames: e.target.value })}
-                  className={`w-full rounded-lg border p-2 text-xs transition-all focus:outline-none ${
-                    isEditing ? "bg-white border-[#0A192F] text-slate-800" : "bg-slate-50 border-slate-200 text-slate-500"
-                  }`}
-                  placeholder="Enter children names"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Section: Lions Info */}
-          <div className="bg-white rounded-xl p-3.5 md:p-5 shadow-xs border border-slate-200">
-            <h2 className="text-xs font-bold text-[#0A192F] mb-2.5 border-b border-slate-100 pb-1">🦁 Lions Club History (Locked)</h2>
-            <div className="space-y-2.5 text-xs text-slate-700 font-semibold">
-              <div className="grid grid-cols-2 gap-2.5">
-                <div>
-                  <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Year Joined</label>
-                  <div className="bg-slate-50 p-2 border border-slate-200 rounded-lg">{member?.yearJoinedLions || "-"}</div>
-                </div>
-                <div>
-                  <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Current Role</label>
-                  <div className="bg-slate-50 p-2 border border-slate-200 rounded-lg text-[#0A192F] font-bold">{member?.currentLionsRole || "-"}</div>
-                </div>
-              </div>
-              <div>
-                <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Past Positions Held</label>
-                <div className="bg-slate-50 p-2 border border-slate-200 rounded-lg whitespace-pre-wrap font-medium">{member?.pastPositions || "None"}</div>
-              </div>
-              <div>
-                <label className="block text-[9px] font-bold uppercase text-slate-400 mb-0.5">Awards & Achievements</label>
-                <div className="bg-slate-50 p-2 border border-slate-200 rounded-lg whitespace-pre-wrap font-medium">{member?.awardsAchievements || "None"}</div>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* --- SAVE BUTTON --- */}
         {isEditing && (
-          <div className="mt-5">
+          <div className="pt-1">
             <button
               onClick={saveProfile}
-              className="bg-[#0A192F] text-white w-full py-3 rounded-lg font-bold tracking-wide shadow-md hover:bg-[#112240] transition-all duration-200 transform active:scale-[0.98] text-sm cursor-pointer"
+              className="bg-[#052f6b] text-white w-full py-3 rounded-xl font-bold tracking-wide shadow-lg hover:bg-[#073b85] transition-all duration-200 transform active:scale-[0.98] text-sm cursor-pointer"
             >
               Save Profile Changes
             </button>
@@ -542,20 +482,20 @@ setMember((prev: any) => ({
         )}
       </div>
 
-      {/* --- QR CODE POPUP MODAL --- */}
+      {/* --- QR कोड पॉपअप मॉडेल --- */}
       {showQRModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-xs animate-fadeIn">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-xs">
           <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm p-5 text-center shadow-2xl relative">
-            <h3 className="text-base font-black text-[#0A192F] mb-1">📇 Digital Business Card QR</h3>
+            <h3 className="text-base font-black mb-1" style={{ color: '#052f6b' }}>📇 Digital Business Card QR</h3>
             <p className="text-[11px] text-slate-500 mb-4 leading-relaxed">
-              हा QR कोड इतर मेंबर्सनी स्कॅन केल्यास तुमची संपर्क माहिती (vCard) थेट त्यांच्या मोबाईल फोनमध्ये सेव्ह होईल.
+              हा QR कोड इतर मेंबर्सनी स्कॅन केल्यास तुमची संपर्क माहिती थेट त्यांच्या मोबाईल फोनमध्ये सेव्ह होईल.
             </p>
             
             <div className="bg-white p-3 rounded-xl inline-block shadow-xs border-2 border-[#D4AF37] mx-auto mb-4">
               <QRCodeSVG value={getVCardData()} size={180} level="M" includeMargin={true} />
             </div>
 
-            <div className="text-sm font-bold text-[#0A192F] mb-0.5">{member?.name}</div>
+            <div className="text-sm font-bold mb-0.5" style={{ color: '#052f6b' }}>{member?.name}</div>
             <div className="text-xs text-slate-500 mb-4">{member?.currentLionsRole}</div>
 
             <button
