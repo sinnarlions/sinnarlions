@@ -240,6 +240,13 @@ export default function MemberManagementPage() {
                             >
                               Edit
                             </button>
+                            <button
+  onClick={() => setSelectedCoupleMember(member)}
+  className="text-xs font-semibold text-white px-3 py-1.5 rounded-lg transition duration-150 shadow-sm hover:opacity-90"
+  style={{ backgroundColor: "#8B5CF6" }}
+>
+  Link Couple
+</button>
                           </td>
                         </tr>
                       ))

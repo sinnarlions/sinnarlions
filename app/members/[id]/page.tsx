@@ -9,13 +9,39 @@ import { Shield, User, Briefcase, Heart, Phone, MessageCircle, Mail, MapPin, Arr
 
 const formatWithoutYear = (dateString: string) => {
   if (!dateString || dateString === "-") return "-";
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  const months = [
+    "Jan", "Feb", "Mar", "Apr",
+    "May", "Jun", "Jul", "Aug",
+    "Sep", "Oct", "Nov", "Dec"
+  ];
+
+  // New format: YYYY-MM-DD
+  if (dateString.includes("-")) {
+    const parts = dateString.split("-");
+
+    if (parts.length === 3) {
+      const day = parseInt(parts[2], 10);
+      const month = parseInt(parts[1], 10);
+
+      if (!isNaN(day) && month >= 1 && month <= 12) {
+        return `${day} ${months[month - 1]}`;
+      }
+    }
+  }
+
+  // Old format: DD.MM.YYYY
   const parts = dateString.split(".");
+
   if (parts.length === 3) {
     const day = parseInt(parts[0], 10);
     const month = parseInt(parts[1], 10);
-    if (!isNaN(day) && month >= 1 && month <= 12) return `${day} ${months[month - 1]}`;
+
+    if (!isNaN(day) && month >= 1 && month <= 12) {
+      return `${day} ${months[month - 1]}`;
+    }
   }
+
   return dateString;
 };
 
@@ -178,13 +204,32 @@ export default function MemberProfilePage() {
         </SectionCard>
 
         <SectionCard title="Family" icon={<Heart size={14} />}>
-          <div className="grid grid-cols-2 divide-x divide-gray-100">
-             <InfoRow label="Spouse" value={member.spouseName} />
-             <InfoRow label="Anniversary" value={formatWithoutYear(member.anniversary)} />
-          </div>
-          <InfoRow label="Children" value={member.childrenNames} multiline />
-          <InfoRow label="Awards" value={member.awardsAchievements} multiline />
-        </SectionCard>
+  
+  {/* Spouse Full Width */}
+  <InfoRow 
+    label="Spouse" 
+    value={member.spouseName} 
+  />
+
+  {/* Anniversary + Date */}
+  <InfoRow 
+    label="Anniversary" 
+    value={formatWithoutYear(member.anniversary)} 
+  />
+
+  <InfoRow 
+    label="Children" 
+    value={member.childrenNames} 
+    multiline 
+  />
+
+  <InfoRow 
+    label="Awards" 
+    value={member.awardsAchievements} 
+    multiline 
+  />
+
+</SectionCard>
         <SectionCard
   title="Lions Profile"
   icon={<Shield size={14} />}
