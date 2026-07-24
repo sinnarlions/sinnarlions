@@ -1,27 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  doc,
+  setDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { db } from "@/src/firebase/config";
 
-interface Member {
-  id: string;
-  memberCode: string;
-  name: string;
-  mobile: string;
-  email?: string;
-  dob?: string;
-  anniversary?: string;
-  bloodGroup?: string;
-  profession?: string;
-  company?: string;
-  jobTitle?: string;
-  businessCategory?: string;
-  address?: string;
-  skills?: string;
-  currentLionsRole?: string;
-  status?: string;
-}
 
 interface MemberAddModalProps {
   onClose: () => void;
@@ -43,11 +31,15 @@ export default function MemberAddModal({ onClose, onSuccess }: MemberAddModalPro
     address: "",
     skills: "",
     currentLionsRole: "Member",
+    yearJoinedLions: "",
+    spouseName: "",
     status: "Active",
+    
   });
 
   const [generatedCode, setGeneratedCode] = useState<string>("LC001");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
 
   // डिलीट केलेले मेंबर लक्षात ठेवून नवीन सुरक्षित कोड तयार करणे
   useEffect(() => {
@@ -93,14 +85,36 @@ export default function MemberAddModal({ onClose, onSuccess }: MemberAddModalPro
 
     try {
       const finalData = {
-        ...formData,
-        memberCode: generatedCode,
-        createdAt: new Date().toISOString()
-      };
+  ...formData,
 
-      await addDoc(collection(db, "members"), finalData);
-      alert(`Member Added Successfully ✅\nAssigned Code: ${generatedCode}`);
-      onSuccess();
+  memberCode: generatedCode,
+
+  loginPin: "1234",
+  isPinChanged: false,
+
+  role: "member",
+status: "Active",
+  isActive: true,
+  isLoggedIn: false,
+  sessionId: "",
+  lastLogin: null,
+
+  createdAt: serverTimestamp(),
+  updatedAt: serverTimestamp(),
+  pastPositions: "",
+  cabinetRole: "",
+  awardsAchievements: "",
+  specialSkills: "",
+  };
+
+      await setDoc(
+  doc(db, "members", generatedCode),
+  finalData
+);
+     alert(`Member Added Successfully ✅\nAssigned Code: ${generatedCode}`);
+
+onSuccess();
+onClose();
     } catch (error) {
       console.error("Error adding member:", error);
       alert("मेंबर जोडताना त्रुटी आली. कृपया पुन्हा प्रयत्न करा.");
@@ -154,13 +168,25 @@ export default function MemberAddModal({ onClose, onSuccess }: MemberAddModalPro
               {/* DOB */}
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Date of Birth</label>
-                <input type="text" name="dob" placeholder="DD.MM.YYYY" value={formData.dob} onChange={handleChange} className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input
+type="date"
+name="dob"
+value={formData.dob}
+onChange={handleChange}
+className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+/>
               </div>
 
               {/* Anniversary */}
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Anniversary Date</label>
-                <input type="text" name="anniversary" placeholder="DD.MM.YYYY" value={formData.anniversary} onChange={handleChange} className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" /> 
+                <input
+type="date"
+name="anniversary"
+value={formData.anniversary}
+onChange={handleChange}
+className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+/> 
               </div>
 
               {/* Profession */}
@@ -172,7 +198,7 @@ export default function MemberAddModal({ onClose, onSuccess }: MemberAddModalPro
               {/* Company */}
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Company / Business Name</label>
-                <input type="text" name="company" placeholder="Company Name" value={formData.companyName} onChange={handleChange} className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input type="text" name="companyName" placeholder="Company Name" value={formData.companyName} onChange={handleChange} className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
 
               {/* Job Title */}
@@ -186,7 +212,52 @@ export default function MemberAddModal({ onClose, onSuccess }: MemberAddModalPro
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Business Category</label>
                 <input type="text" name="businessCategory" placeholder="e.g. IT, Manufacturing" value={formData.businessCategory} onChange={handleChange} className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
+<div>
+  <label className="block text-xs font-semibold text-gray-600 mb-1">
+    Year Joined Lions
+  </label>
 
+  <select
+    name="yearJoinedLions"
+    value={formData.yearJoinedLions}
+    onChange={handleChange}
+    className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  >
+    <option value="">Select Year</option>
+
+    {Array.from(
+      { length: new Date().getFullYear() - 1999 + 1 },
+      (_, i) => {
+        const year = new Date().getFullYear() - i;
+
+        return (
+          <option key={year} value={year}>
+            {year}
+          </option>
+        );
+      }
+    )}
+  </select>
+</div>
+</div>   ← Year Joined Lions संपतो
+
+<div>
+  <label className="block text-xs font-semibold text-gray-600 mb-1">
+    Spouse Name
+  </label>
+
+  <input
+    type="text"
+    name="spouseName"
+    value={formData.spouseName}
+    onChange={handleChange}
+    placeholder="Spouse Name"
+    className="w-full border border-gray-200 bg-gray-50 focus:bg-white rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+</div>
+
+{/* Current Lions Role */}
+<div className="sm:col-span-2">
               {/* Current Lions Role */}
               <div className="sm:col-span-2">
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Current Lions Role</label>

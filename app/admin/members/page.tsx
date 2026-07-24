@@ -7,6 +7,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/src/firebase/config";
 import { canAccessAdmin, isSuperAdmin as checkSuperAdmin, UserData } from "@/src/utils/permissions";
 import MemberViewModal from "@/components/MemberViewModal";
+import CoupleLinkModal from "../../../components/CoupleLinkModal";
 import MemberEditModal from "@/components/MemberEditModal";
 import MemberAddModal from "@/components/MemberAddModal";
 
@@ -38,6 +39,7 @@ export default function MemberManagementPage() {
   const [search, setSearch] = useState<string>("");
   const [selectedViewMember, setSelectedViewMember] = useState<Member | null>(null);
   const [selectedEditMember, setSelectedEditMember] = useState<Member | null>(null);
+  const [selectedCoupleMember, setSelectedCoupleMember] = useState<Member | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [authorized, setAuthorized] = useState<boolean>(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(false);
@@ -285,6 +287,16 @@ export default function MemberManagementPage() {
                         >
                           Edit
                         </button>
+                        <button
+  onClick={() => {
+  setSelectedCoupleMember(member);
+  alert(`Link Couple for ${member.name}`);
+}}
+  className="text-xs font-semibold text-white px-3 py-1.5 rounded-lg transition duration-150 shadow-sm hover:opacity-90"
+  style={{ backgroundColor: "#8B5CF6" }}
+>
+  Link Couple
+</button>
                       </div>
                     </div>
                   ))
@@ -325,6 +337,16 @@ export default function MemberManagementPage() {
           }} 
         />
       )}
+      {selectedCoupleMember && (
+  <CoupleLinkModal
+    member={selectedCoupleMember}
+    onClose={() => setSelectedCoupleMember(null)}
+    onSuccess={() => {
+      setSelectedCoupleMember(null);
+      loadMembers();
+    }}
+  />
+)}
     </div>
   );
 }
