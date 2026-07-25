@@ -41,8 +41,27 @@ textarea {
 
 input::placeholder,
 textarea::placeholder {
-  color: #9ca3af;
-  opacity: 1;
+  color: #4a5b72 !important; /* मध्यम निळसर-राखाडी (Slate 600) - ना खूप गडद, ना खूप फिकट */
+  opacity: 1 !important;
+  -webkit-text-fill-color: #364c68 !important;
+}
+
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+  color: #637690 !important;
+  -webkit-text-fill-color: #475569 !important;
+}
+
+input::-moz-placeholder,
+textarea::-moz-placeholder {
+  color: #58677d !important;
+  opacity: 1 !important;
+}
+
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+  color: #4e607a !important;
+  -webkit-text-fill-color: #3b4a5f !important;
 }
 
 select {
@@ -53,4 +72,10 @@ input:disabled,
 select:disabled,
 textarea:disabled {
   opacity: 1;
+}
+/* डेस्कटॉपवरील सर्व ब्राउझरसाठी (Chrome, Edge, Firefox, Safari) */
+input::placeholder,
+textarea::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
 }

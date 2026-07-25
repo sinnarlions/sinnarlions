@@ -9,12 +9,15 @@ import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import {
   collection,
   getDocs,
+  getDoc,
   query,
   where,
   deleteDoc,
   doc,
   onSnapshot,
   updateDoc,
+  setDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 
 export default function Home() {
@@ -32,6 +35,12 @@ export default function Home() {
   const [celebrations, setCelebrations] = useState<any[]>([]);
   const [upcomingCelebrations, setUpcomingCelebrations] = useState<any[]>([]);
   const [upcomingMeeting, setUpcomingMeeting] = useState<any>(null);
+  const [memberId, setMemberId] = useState("");
+  const [memberCode, setMemberCode] = useState("");
+  const [showAttendance, setShowAttendance] = useState(false);
+  
+  // अनाऊन्समेंट अटेंडन्स यादी टॉगल करण्यासाठी स्टेट
+  const [announcementAttendanceOpen, setAnnouncementAttendanceOpen] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     const handlePageShow = () => {
@@ -56,7 +65,8 @@ export default function Home() {
     }
 
     const saved = JSON.parse(member);
-
+    setMemberId(saved.id);
+    setMemberCode(saved.memberCode);
     setMemberVerified(true);
     setMemberName(saved.name);
     setIsSuperAdmin(saved.isSuperAdmin || false);
@@ -65,30 +75,29 @@ export default function Home() {
     setCurrentRole(userRole);
 
   // --- रिअल-टाइम सेशन व्हॅलिडेशन (onSnapshot) ---
-let unsubscribeSession = () => {};
+  let unsubscribeSession = () => {};
 
-// 👑 Super Admin साठी Session Validation Skip
-if (saved && saved.id && saved.sessionId && !saved.isSuperAdmin) {
-  const memberDocRef = doc(db, "members", saved.id);
+  if (saved && saved.id && saved.sessionId && !saved.isSuperAdmin) {
+    const memberDocRef = doc(db, "members", saved.id);
 
-  unsubscribeSession = onSnapshot(
-    memberDocRef,
-    (snapshot) => {
-      if (snapshot.exists()) {
-        const liveMemberData = snapshot.data();
+    unsubscribeSession = onSnapshot(
+      memberDocRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const liveMemberData = snapshot.data();
 
-        if (saved.sessionId !== liveMemberData.sessionId) {
-          alert("Your account has been logged in from another device.");
-          localStorage.clear();
-          router.replace("/login");
+          if (saved.sessionId !== liveMemberData.sessionId) {
+            alert("Your account has been logged in from another device.");
+            localStorage.clear();
+            router.replace("/login");
+          }
         }
+      },
+      (error) => {
+        console.error("Session listener error:", error);
       }
-    },
-    (error) => {
-      console.error("Session listener error:", error);
-    }
-  );
-}
+    );
+  }
 
     cleanupExpiredAnnouncements();
     loadCelebrations();
@@ -103,10 +112,11 @@ if (saved && saved.id && saved.sessionId && !saved.isSuperAdmin) {
 
   const cleanupExpiredAnnouncements = async () => {
     const snapshot = await getDocs(collection(db, "announcements"));
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
     for (const item of snapshot.docs) {
       const data = item.data();
-      if (data.deleteAfter && data.deleteAfter < today) {
+      const expiryDate = data.eventDate || data.deleteAfter;
+      if (expiryDate && expiryDate < today) {
         await deleteDoc(doc(db, "announcements", item.id));
       }
     }
@@ -115,7 +125,7 @@ if (saved && saved.id && saved.sessionId && !saved.isSuperAdmin) {
   const loadCelebrations = async () => {
     const snapshot = await getDocs(collection(db, "members"));
     const today = new Date();
-today.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
     const todayDay = today.getDate();
     const todayMonth = today.getMonth() + 1;
     const data: any[] = [];
@@ -196,39 +206,102 @@ today.setHours(0, 0, 0, 0);
 
   const loadAnnouncements = async () => {
     const snapshot = await getDocs(collection(db, "announcements"));
-    const today = new Date().toISOString().split("T")[0];
+    const todayIST = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+
     const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-      .filter((item: any) => item.visibleUntil >= today);
+      .filter((item: any) => {
+        const expiryDate = item.eventDate || item.visibleUntil || item.deleteAfter;
+        if (!expiryDate) return true;
+        return todayIST <= expiryDate;
+      });
+      
     setAnnouncements(data);
   };
 
-  const cardWrapperClass = "relative w-full mb-3.5 transition-all duration-200 active:scale-[0.99]";
-const loadUpcomingMeeting = async () => {
-  const snapshot = await getDocs(collection(db, "meetings"));
+  const submitAnnouncementAttendance = async (
+    announcementId: string,
+    status: "yes" | "maybe" | "no"
+  ) => {
+    try {
+      const member = JSON.parse(localStorage.getItem("member") || "{}");
+      const announcementRef = doc(db, "announcements", announcementId);
 
-  const today = new Date();
+      const snap = await getDoc(announcementRef);
+      if (!snap.exists()) return;
 
-  const meetings = snapshot.docs
-  
-    .map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }))
-    .filter((meeting: any) => {
-      return (
-        meeting.status === "Upcoming" &&
-        new Date(meeting.meetingDate) >= today
+      const data = snap.data();
+      let attendance = data.attendance || [];
+
+      attendance = attendance.filter(
+        (a: any) => a.memberId !== member.id
       );
-    })
-    .sort((a: any, b: any) =>
-      new Date(a.meetingDate).getTime() -
-      new Date(b.meetingDate).getTime()
-    );
 
-  if (meetings.length > 0) {
-    setUpcomingMeeting(meetings[0]);
-  }
-};
+      attendance.push({
+        memberId: member.id,
+        name: member.name,
+        status,
+        updatedAt: new Date().toISOString(),
+      });
+
+      await updateDoc(announcementRef, {
+        attendance,
+      });
+
+      loadAnnouncements();
+    } catch (err) {
+      console.error(err);
+      alert("Attendance update failed.");
+    }
+  };
+
+  const cardWrapperClass = "relative w-full mb-3.5 transition-all duration-200 active:scale-[0.99]";
+  
+  const loadUpcomingMeeting = async () => {
+    const snapshot = await getDocs(collection(db, "meetings"));
+    const today = new Date();
+
+    const meetings = snapshot.docs
+      .map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      .filter((meeting: any) => {
+        return (
+          meeting.status === "Upcoming" &&
+          new Date(meeting.meetingDate) >= today
+        );
+      })
+      .sort((a: any, b: any) =>
+        new Date(a.meetingDate).getTime() -
+        new Date(b.meetingDate).getTime()
+      );
+
+    if (meetings.length > 0) {
+      setUpcomingMeeting(meetings[0]);
+    }
+  };
+
+  const submitAttendance = async (status: "yes" | "maybe" | "no") => {
+    if (!upcomingMeeting || !memberId) return;
+
+    try {
+      await updateDoc(doc(db, "meetings", upcomingMeeting.id), {
+        [`attendance.${memberId}`]: {
+          memberId,
+          memberCode,
+          name: memberName,
+          status,
+          respondedAt: new Date(),
+        },
+      });
+
+      await loadUpcomingMeeting();
+    } catch (err) {
+      console.error(err);
+      alert("Unable to save response.");
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#003B75] flex flex-col antialiased font-sans">
       <PWAInstallPrompt />
@@ -277,54 +350,45 @@ const loadUpcomingMeeting = async () => {
               </div>
 
               {/* Compact Buttons Row */}
-<div className="flex flex-wrap gap-2 pt-1">
-  
-  {(isSuperAdmin || currentRole === "President" || currentRole === "Secretary" || currentRole === "Treasurer") && (
-    <button
-      onClick={() => router.push("/admin")}
-      className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all"
-    >
-      Admin
-    </button>
-  )}
-  
-  
-  <button onClick={() => router.push("/club")} className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all">Club</button>
-  <button onClick={() => router.push("/my-profile")} className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all">My Profile</button>
-  
-  <button
-  onClick={async () => {
-    try {
-      const member = localStorage.getItem("member");
-
-      if (member) {
-        const saved = JSON.parse(member);
-
-        // Normal members/Admins
-        if (!saved.isSuperAdmin) {
-          await updateDoc(doc(db, "members", saved.id), {
-            isLoggedIn: false,
-            sessionId: "",
-          });
-        }
-
-        // Super Admin साठी Firestore update नाही
-      }
-
-      localStorage.clear();
-      router.replace("/login");
-    } catch (error) {
-      console.error("Logout Error:", error);
-
-      localStorage.clear();
-      router.replace("/login");
-    }
-  }}
-className="cursor-pointer bg-[#F2A900]/10 hover:bg-[#F2A900]/20 text-[#d69500] px-2 py-1 rounded-md text-[10px] font-black transition-colors"
->
-  Logout
-</button>
-</div>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {(isSuperAdmin || currentRole === "President" || currentRole === "Secretary" || currentRole === "Treasurer") && (
+                  <button
+                    onClick={() => router.push("/admin")}
+                    className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all"
+                  >
+                    Admin
+                  </button>
+                )}
+                
+                <button onClick={() => router.push("/club")} className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all">Club</button>
+                <button onClick={() => router.push("/my-profile")} className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-[#003B75] px-2 py-1 rounded-md text-[10px] font-extrabold transition-all">My Profile</button>
+                
+                <button
+                  onClick={async () => {
+                    try {
+                      const member = localStorage.getItem("member");
+                      if (member) {
+                        const saved = JSON.parse(member);
+                        if (!saved.isSuperAdmin) {
+                          await updateDoc(doc(db, "members", saved.id), {
+                            isLoggedIn: false,
+                            sessionId: "",
+                          });
+                        }
+                      }
+                      localStorage.clear();
+                      router.replace("/login");
+                    } catch (error) {
+                      console.error("Logout Error:", error);
+                      localStorage.clear();
+                      router.replace("/login");
+                    }
+                  }}
+                  className="cursor-pointer bg-[#F2A900]/10 hover:bg-[#F2A900]/20 text-[#d69500] px-2 py-1 rounded-md text-[10px] font-black transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
 
             </div>
           )}
@@ -368,69 +432,131 @@ className="cursor-pointer bg-[#F2A900]/10 hover:bg-[#F2A900]/20 text-[#d69500] p
             )}
           </section>
 
-{/* UPCOMING MEETING */}<section>
-  {!upcomingMeeting ? (
-    <div className="bg-[#EEF6FF] rounded-2xl p-6 min-h-[110px] flex flex-col justify-center shadow-sm">
-      <h3 className="text-xs uppercase tracking-[0.2em] font-bold text-gray-500 mb-2">
-        Upcoming Meeting
-      </h3>
+          {/* UPCOMING MEETING */}
+          <section>
+            {!upcomingMeeting ? (
+              <div className="bg-[#EEF6FF] rounded-2xl p-6 min-h-[110px] flex flex-col justify-center shadow-sm">
+                <h3 className="text-xs uppercase tracking-[0.2em] font-bold text-gray-500 mb-2">
+                  Upcoming Meeting
+                </h3>
+                <h4 className="text-xl font-bold text-gray-400">
+                  No Upcoming Meeting
+                </h4>
+              </div>
+            ) : (
+              <div
+                onClick={() => router.push(`/meeting/${upcomingMeeting.id}`)}
+                className="bg-[#EEF6FF] rounded-2xl p-6 min-h-[125px] cursor-pointer shadow border border-gray-200 hover:shadow-md transition-all"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xs uppercase tracking-[0.2em] font-bold text-gray-500">
+                      Upcoming Meeting
+                    </h3>
+                    <h4 className="text-1.5xl font-bold text-[#003B75] mt-2">
+                      {upcomingMeeting.meetingTitle}
+                    </h4>
 
-      <h4 className="text-xl font-bold text-gray-400">
-        No Upcoming Meeting
-      </h4>
-    </div>
-  ) : (
-    <div
-      onClick={() => router.push(`/meeting/${upcomingMeeting.id}`)}
-      className="bg-[#EEF6FF] rounded-2xl p-6 min-h-[125px] cursor-pointer shadow border border-gray-200 hover:shadow-md transition-all"
-    >
-      <div className="flex justify-between items-start">
+                    <div className="flex flex-wrap gap-5 text-sm text-gray-600 font-medium mt-4">
+                      <span>
+                        📅{" "}
+                        {new Date(upcomingMeeting.meetingDate).toLocaleDateString(
+                          "en-GB",
+                          {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          }
+                        )}
+                      </span>
 
-        <div>
-          <h3 className="text-xs uppercase tracking-[0.2em] font-bold text-gray-500">
-            Upcoming Meeting
-          </h3>
+                      <span>
+                        🕒{" "}
+                        {new Date(
+                          `2000-01-01T${upcomingMeeting.meetingTime}`
+                        ).toLocaleTimeString("en-IN", {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                      </span>
 
-          <h4 className="text-1.5xl font-bold text-[#003B75] mt-2">
-            {upcomingMeeting.meetingTitle}
-          </h4>
+                      <span>📍 {upcomingMeeting.venue}</span>
+                      <div className="mt-5 flex gap-2 flex-wrap">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            submitAttendance("yes");
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition-all"
+                        >
+                          ✓ Attending
+                        </button>
 
-          <div className="flex flex-wrap gap-5 text-sm text-gray-600 font-medium mt-4">
-            <span>
-              📅{" "}
-              {new Date(upcomingMeeting.meetingDate).toLocaleDateString(
-                "en-GB",
-                {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                }
-              )}
-            </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            submitAttendance("maybe");
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold transition-all"
+                        >
+                          ? Maybe
+                        </button>
 
-            <span>
-              🕒{" "}
-              {new Date(
-                `2000-01-01T${upcomingMeeting.meetingTime}`
-              ).toLocaleTimeString("en-IN", {
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true,
-              })}
-            </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            submitAttendance("no");
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 text-xs font-bold transition-all"
+                        >
+                          ✕ Not Attending
+                        </button>
+                      </div>
+                    </div>
+                  </div>
 
-            <span>📍 {upcomingMeeting.venue}</span>
-          </div>
-        </div>
+                  {upcomingMeeting.attendance && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="mt-4 border-t pt-3"
+                    >
+                      <button
+                        onClick={() => setShowAttendance(!showAttendance)}
+                        className="text-sm font-bold text-[#003B75]"
+                      >
+                        👥 Attendance ({Object.keys(upcomingMeeting.attendance).length})
+                      </button>
 
-        <div className="text-3xl text-[#003B75] font-light">
-          →
-        </div>
+                      {showAttendance && (
+                        <div className="mt-2 space-y-1">
+                          {Object.values(upcomingMeeting.attendance).map((a: any, index: number) => (
+                            <div
+                              key={index}
+                              className="flex justify-between text-sm border-b py-1"
+                            >
+                              <span>{a.name}</span>
+                              <span>
+                                {a.status === "yes"
+                                  ? "✅"
+                                  : a.status === "maybe"
+                                  ? "🤔"
+                                  : "❌"}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-      </div>
-    </div>
-  )}
-</section>
+                  <div className="text-3xl text-[#003B75] font-light">
+                    →
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
 
           {/* SECTION 2: CLUB UPDATES */}
           <section>
@@ -445,43 +571,132 @@ className="cursor-pointer bg-[#F2A900]/10 hover:bg-[#F2A900]/20 text-[#d69500] p
                 </div>
               </div>
             ) : (
-              announcements.map((item) => (
-                <div key={item.id} className={cardWrapperClass}>
-                  <div className="absolute left-0 top-0 bottom-0 w-2 bg-[#003B75] rounded-l-xl" />
-                  <div className="ml-2 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                    <div>
-                      <span className="bg-[#003B75] text-white px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">
-                        📢 {item.type}
-                      </span>
-                      <h4 className="mt-1.5 text-base font-bold text-[#003B75] tracking-tight leading-snug">
-                        {item.title}
-                      </h4>
-                      
-                      {/* इंग्रजी शब्द (Date, Time, Venue) */}
-                      <div className="mt-2 flex flex-col gap-y-0.5 text-[11px] font-bold text-gray-500">
-                        {item.eventDate && (
-                          <span>
-                            Date: <span className="text-gray-700">{new Date(item.eventDate).toLocaleDateString("en-GB", {
-                              day: "numeric", month: "long", year: "numeric",
-                            })}</span>
-                          </span>
+              announcements.map((item) => {
+                const isOpen = announcementAttendanceOpen[item.id] || false;
+                const attendanceList = item.attendance || [];
+
+                return (
+                  <div key={item.id} className={cardWrapperClass}>
+                    <div className="absolute left-0 top-0 bottom-0 w-2 bg-[#003B75] rounded-l-xl" />
+                    <div className="ml-2 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                      <div>
+                        <span className="bg-[#003B75] text-white px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">
+                          📢 {item.type}
+                        </span>
+                        <h4 className="mt-1.5 text-base font-bold text-[#003B75] tracking-tight leading-snug">
+                          {item.title}
+                        </h4>
+                        
+                        {/* Date, Time, Venue - Golden Highlight Box */}
+                        {(item.eventDate || item.eventTime || item.venue) && (
+                          <div className="mt-3 bg-amber-50/80 border border-amber-200 rounded-xl p-2.5 flex flex-col gap-1.5 text-xs font-semibold text-[#003B75]">
+                            {item.eventDate && (
+                              <div className="flex items-center gap-1.5">
+                                <span>📅</span>
+                                <span className="font-bold text-gray-500">Date:</span>
+                                <span className="text-gray-900 font-extrabold">
+                                  {new Date(item.eventDate).toLocaleDateString("en-GB", {
+                                    day: "numeric", month: "long", year: "numeric",
+                                  })}
+                                </span>
+                              </div>
+                            )}
+                            
+                            {item.eventTime && (
+                              <div className="flex items-center gap-1.5">
+                                <span>🕒</span>
+                                <span className="font-bold text-gray-500">Time:</span>
+                                <span className="text-gray-900 font-extrabold">{item.eventTime}</span>
+                              </div>
+                            )}
+
+                            {item.venue && (
+                              <div className="flex items-center gap-1.5">
+                                <span>📍</span>
+                                <span className="font-bold text-gray-500">Venue:</span>
+                                <span className="text-gray-900 font-extrabold">{item.venue}</span>
+                              </div>
+                            )}
+                          </div>
                         )}
-                        {item.eventTime && <span>Time: <span className="text-gray-700">{item.eventTime}</span></span>}
-                        {item.venue && <p>Venue: <span className="text-gray-700">{item.venue}</span></p>}
+                      </div>
+
+                      <p className="mt-3 text-sm font-medium leading-relaxed text-gray-700 whitespace-pre-line border-t border-gray-100 pt-2">
+                        {item.message}
+                      </p>
+
+                      {/* RSVP बटणे (Soft & Decent Style) आणि उपस्थिती यादी */}
+                      <div className="mt-4 border-t border-gray-100 pt-3 space-y-3">
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            onClick={() => submitAnnouncementAttendance(item.id, "yes")}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition-all cursor-pointer"
+                          >
+                            ✓ Attending
+                          </button>
+
+                          <button
+                            onClick={() => submitAnnouncementAttendance(item.id, "maybe")}
+                            className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold transition-all cursor-pointer"
+                          >
+                            ? Maybe
+                          </button>
+
+                          <button
+                            onClick={() => submitAnnouncementAttendance(item.id, "no")}
+                            className="px-3 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 text-xs font-bold transition-all cursor-pointer"
+                          >
+                            ✕ Not Attending
+                          </button>
+                        </div>
+
+                        {/* लाईव्ह उपस्थिती यादी टॉगल */}
+                        <div>
+                          <button
+                            onClick={() =>
+                              setAnnouncementAttendanceOpen((prev) => ({
+                                ...prev,
+                                [item.id]: !isOpen,
+                              }))
+                            }
+                            className="text-xs font-bold text-[#003B75] cursor-pointer"
+                          >
+                            👥 Attendance ({attendanceList.length})
+                          </button>
+
+                          {isOpen && (
+                            <div className="mt-2 space-y-1 bg-gray-50 p-2 rounded-lg border border-gray-100">
+                              {attendanceList.length === 0 ? (
+                                <p className="text-[11px] text-gray-400 italic">No responses yet</p>
+                              ) : (
+                                attendanceList.map((a: any, index: number) => (
+                                  <div
+                                    key={index}
+                                    className="flex justify-between text-xs border-b border-gray-200/50 py-1"
+                                  >
+                                    <span className="font-semibold text-gray-700">{a.name}</span>
+                                    <span>
+                                      {a.status === "yes"
+                                        ? "✅"
+                                        : a.status === "maybe"
+                                        ? "🤔"
+                                        : "❌"}
+                                    </span>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mt-2.5 text-[8px] text-gray-400 font-bold uppercase tracking-wider">
+                        Published By: <span className="text-gray-700 font-extrabold">{item.author}</span>
                       </div>
                     </div>
-
-                    {/* मुख्य मजकुराचा फॉन्ट (text-sm आणि text-gray-700) */}
-                    <p className="mt-3 text-sm font-medium leading-relaxed text-gray-700 whitespace-pre-line border-t border-gray-100 pt-2">
-                      {item.message}
-                    </p>
-
-                    <div className="mt-2.5 text-[8px] text-gray-400 font-bold uppercase tracking-wider">
-                      Published By: <span className="text-gray-700 font-extrabold">{item.author}</span>
-                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </section>
 
@@ -510,7 +725,6 @@ className="cursor-pointer bg-[#F2A900]/10 hover:bg-[#F2A900]/20 text-[#d69500] p
                         In {item.days_left} Days
                       </span>
                     </div>
-                    {/* मुख्य मजकूर थोडा फिकट (text-gray-600) केला */}
                     <h4 className="mt-0.5 text-sm font-semibold text-gray-600 tracking-tight">
                       {item.name}
                     </h4>

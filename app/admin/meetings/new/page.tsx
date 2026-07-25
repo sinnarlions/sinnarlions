@@ -65,19 +65,24 @@ export default function NewMeetingPage() {
 
       // 1-7. Save Meeting
       batch.set(meetingRef, {
-        meetingType: formData.meetingType,
-        meetingTitle: finalTitle,
-        meetingDate: formData.meetingDate,
-        meetingTime: formData.meetingTime,
-        venue: formData.venue.trim(),
-        announcement: formData.announcement,
-        status: "Draft", // 1. Important
-        createdBy: currentUser?.name,
-        createdByMemberCode: currentUser?.memberCode || "N/A",
-        createdRole: currentUser?.currentLionsRole,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
+  meetingType: formData.meetingType,
+  meetingTitle: finalTitle,
+  meetingDate: formData.meetingDate,
+  meetingTime: formData.meetingTime,
+  venue: formData.venue.trim(),
+  announcement: formData.announcement,
+
+  status: "Draft",
+
+  attendanceEnabled: true,
+
+  createdBy: currentUser?.name,
+  createdByMemberCode: currentUser?.memberCode || "N/A",
+  createdRole: currentUser?.currentLionsRole,
+
+  createdAt: serverTimestamp(),
+  updatedAt: serverTimestamp(),
+});
 
       // 3, 6. Save Agenda Items
       const defaultTitles = ["ध्वजवंदन", "मागील सभेचा इतिवृत्तांत वाचून कायम करणे", "आलेला पत्रव्यवहार पाहणे", "विषय क्र.", "विषय क्र.", "विषय क्र.", "विषय क्र.", "विषय क्र.", "आयत्या वेळचे विषय", "राष्ट्रगीत"];

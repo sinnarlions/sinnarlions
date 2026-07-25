@@ -70,7 +70,7 @@ export default function AdminPage() {
     setCurrentRole(user.currentLionsRole || "");
 
     if (!superAdminStatus) {
-      setAuthor(user.currentLionsRole || "Member");
+      setAuthor(user.name || user.currentLionsRole || "Member");
     }
 
     if (!allowed) {
