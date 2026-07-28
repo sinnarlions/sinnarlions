@@ -2,7 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { canAccessFinance } from "@/src/utils/permissions";
 import { ArrowLeft } from "lucide-react";
+
 import {
   CreditCard,
   IndianRupee,
@@ -51,6 +55,20 @@ const financeCards = [
 ];
 
 export default function FinancePage() {
+  const router = useRouter();
+  useEffect(() => {
+  const storedMember = localStorage.getItem("member");
+
+  if (!storedMember) {
+    router.replace("/");
+    return;
+  }
+  const member = JSON.parse(storedMember);
+
+  if (!canAccessFinance(member)) {
+    router.replace("/");
+  }
+}, [router]);
   return (
     <main className="min-h-screen bg-slate-50">
       {/* Header */}

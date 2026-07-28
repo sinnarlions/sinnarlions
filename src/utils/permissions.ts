@@ -63,3 +63,17 @@ export const canDeleteAnnouncement = (user: UserData) =>
 export const canManageMembers = (user: UserData) => isSuperAdmin(user);
 export const canImportMembers = (user: UserData) => isSuperAdmin(user);
 export const canDeleteMembers = (user: UserData) => isSuperAdmin(user);
+
+// --------------------
+// Finance Permissions
+// --------------------
+
+export const canAccessFinance = (user: UserData) =>
+  isSuperAdmin(user) ||
+  isPresident(user) ||
+  isTreasurer(user);
+
+
+export const canManageFinance = (user: UserData) =>
+  isSuperAdmin(user) ||
+  isPresident(user);

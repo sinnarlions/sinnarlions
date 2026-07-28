@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+
 import { db } from "../src/firebase/config";
 import AuthGuard from "@/src/components/AuthGuard";
 import { useRouter } from "next/navigation";
@@ -217,7 +218,8 @@ export default function Home() {
       
     setAnnouncements(data);
   };
-
+// आजच्या दिवसातील सण किंवा सुट्टी शोधण्यासाठी फंक्शन
+  
   const submitAnnouncementAttendance = async (
     announcementId: string,
     status: "yes" | "maybe" | "no"
@@ -430,6 +432,7 @@ export default function Home() {
                 </div>
               ))
             )}
+            
           </section>
 
           {/* UPCOMING MEETING */}
