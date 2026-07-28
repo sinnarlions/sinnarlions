@@ -67,6 +67,7 @@ export default function MembershipFeesPage() {
   const [couples, setCouples] = useState<Member[]>([]);
   const [paidMembers, setPaidMembers] = useState<Record<string, FeeData>>({});
   const [filter, setFilter] = useState<"All" | "Paid" | "Pending">("All");
+  const [search, setSearch] = useState("");
   const [showDialog, setShowDialog] = useState(false);
   const [selectedCouple, setSelectedCouple] = useState<Member | null>(null);
   const [amount, setAmount] = useState(12000);
@@ -507,9 +508,34 @@ console.log("Fee Data:", feeData);
           </button>
         ))}
       </div>
-
+<input
+  type="text"
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  placeholder="Search by Name / Member Code"
+  className="w-full mb-5 rounded-xl border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003B75]"
+/>
+      
+      
       <div className="space-y-3">
-        {couples.filter(m => filter === "All" ? true : filter === "Paid" ? !!paidMembers[m.memberCode] : !paidMembers[m.memberCode]).map((couple) => (
+       {couples
+  .filter((m) => {
+    const statusMatch =
+      filter === "All"
+        ? true
+        : filter === "Paid"
+        ? !!paidMembers[m.memberCode]
+        : !paidMembers[m.memberCode];
+
+    const searchMatch =
+      search.trim() === "" ||
+      m.name.toLowerCase().includes(search.toLowerCase()) ||
+      (m.spouseName ?? "").toLowerCase().includes(search.toLowerCase()) ||
+      m.memberCode.toLowerCase().includes(search.toLowerCase());
+
+    return statusMatch && searchMatch;
+  })
+  .map((couple) => (
           <div key={couple.memberCode} className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border-l-4 border-[#003B75]">
             <div>
               <p className="font-bold text-[#003B75]">{couple.name} & {couple.spouseName}</p>
