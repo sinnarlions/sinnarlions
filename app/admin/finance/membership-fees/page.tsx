@@ -244,7 +244,7 @@ docPdf.setFont("helvetica", "normal");
     docPdf.text("Membership", 118, 64);
     docPdf.setFont("helvetica", "normal");
     docPdf.text(data.membershipType, 160, 64);
-
+// Trigger Vercel deployment
     autoTable(docPdf, {
       startY: 75,
       margin: { left: 12, right: 12 },
