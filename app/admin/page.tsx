@@ -111,15 +111,24 @@ export default function AdminPage() {
   };
 
   const handlePublish = async () => {
-    if (!title || !message || !eventDate || !author) {
-      alert("Please fill all required fields.");
-      return;
-    }
+   if (!title || !message || !author) {
+  alert("Please fill all required fields.");
+  return;
+}
 
-    const visibleUntil = eventDate;
-    const deleteAfterDate = new Date(eventDate);
-    deleteAfterDate.setDate(deleteAfterDate.getDate() + 3);
-    const deleteAfter = deleteAfterDate.toISOString().split("T")[0];
+    const today = new Date().toISOString().split("T")[0];
+
+const visibleUntil = eventDate || today;
+
+const deleteAfterDate = new Date(eventDate || today);
+deleteAfterDate.setDate(deleteAfterDate.getDate() + 3);
+
+const deleteAfter = deleteAfterDate.toISOString().split("T")[0];
+
+// Event नसल्यास Event fields रिकामे करा
+const finalEventDate = type === "Event" ? eventDate : "";
+const finalEventTime = type === "Event" ? eventTime : "";
+const finalVenue = type === "Event" ? venue : "";
 
     if (editingId) {
       await updateDoc(doc(db, "announcements", editingId), {
@@ -127,9 +136,9 @@ export default function AdminPage() {
         message,
         type,
         author,
-        eventDate,
-        eventTime,
-        venue,
+        eventDate: finalEventDate,
+eventTime: finalEventTime,
+venue: finalVenue,
         visibleUntil,
         deleteAfter,
       });
@@ -140,9 +149,9 @@ export default function AdminPage() {
         message,
         type,
         author,
-        eventDate,
-        eventTime,
-        venue,
+        eventDate: finalEventDate,
+eventTime: finalEventTime,
+venue: finalVenue,
         visibleUntil,
         deleteAfter,
         createdAt: serverTimestamp(),
@@ -180,15 +189,25 @@ export default function AdminPage() {
 
   const getCardBgClass = (cardType: string) => {
     switch (cardType) {
-      
-      case "Activity":
-        return "bg-amber-50/50 border-amber-200/60";
-      case "Emergency":
-        return "bg-rose-50/40 border-rose-200/60";
-      case "Notice":
-      default:
-        return "bg-gray-50 border-gray-200";
-    }
+  case "Event":
+    return "bg-amber-50/50 border-amber-200/60";
+
+  case "Congratulations":
+    return "bg-green-50 border-green-200";
+
+  case "Achievement":
+    return "bg-blue-50 border-blue-200";
+
+  case "Condolence":
+    return "bg-slate-50 border-slate-300";
+
+  case "Emergency":
+    return "bg-rose-50/40 border-rose-200/60";
+
+  case "Notice":
+  default:
+    return "bg-gray-50 border-gray-200";
+}
   };
 
   if (!authorized) return null;
@@ -259,9 +278,12 @@ export default function AdminPage() {
                   className="w-full rounded-xl border border-gray-200 p-2.5 text-sm font-bold text-gray-700 focus:outline-none focus:border-[#003B75] bg-gray-50/50 transition-colors cursor-pointer"
                 >
                   
-                  <option>Activity</option>
                   <option>Notice</option>
-                  <option>Emergency</option>
+<option>Event</option>
+<option>Congratulations</option>
+<option>Achievement</option>
+<option>Condolence</option>
+<option>Emergency</option>
                 </select>
               </div>
 
@@ -291,13 +313,14 @@ export default function AdminPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                  Event Date <span className="text-red-500">*</span>
+                  Event Date
                 </label>
                 <input
                   type="date"
                   value={eventDate}
                   onChange={(e) => setEventDate(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 p-2.5 text-sm font-medium focus:outline-none focus:border-[#003B75] bg-gray-50/50 transition-colors cursor-pointer"
+                  disabled={type !== "Event"}
+                  className="w-full rounded-xl border border-gray-200 p-2.5 text-sm font-medium focus:outline-none focus:border-[#003B75] bg-gray-50/50 transition-colors cursor-pointer disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -309,7 +332,8 @@ export default function AdminPage() {
                   type="time"
                   value={eventTime}
                   onChange={(e) => setEventTime(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 p-2.5 text-sm font-medium focus:outline-none focus:border-[#003B75] bg-gray-50/50 transition-colors cursor-pointer"
+                  disabled={type !== "Event"}
+                  className="w-full rounded-xl border border-gray-200 p-2.5 text-sm font-medium focus:outline-none focus:border-[#003B75] bg-gray-50/50 transition-colors cursor-pointer disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -322,7 +346,8 @@ export default function AdminPage() {
                   placeholder="e.g., Thorat Hospital"
                   value={venue}
                   onChange={(e) => setVenue(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 p-2.5 text-sm font-medium focus:outline-none focus:border-[#003B75] bg-gray-50/50 transition-colors"
+                  disabled={type !== "Event"}
+                  className="w-full rounded-xl border border-gray-200 p-2.5 text-sm font-medium focus:outline-none focus:border-[#003B75] bg-gray-50/50 transition-colors disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -420,14 +445,19 @@ export default function AdminPage() {
                     </div>
 
                     <span className="self-start sm:self-center bg-[#003B75]/10 text-[#003B75] text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border border-[#003B75]/10 whitespace-nowrap">
-                      {item.type}
+                      {item.type === "Event" && "📅 Event"}
+{item.type === "Notice" && "📢 Notice"}
+{item.type === "Congratulations" && "🎉 Congratulations"}
+{item.type === "Achievement" && "🏆 Achievement"}
+{item.type === "Condolence" && "❤️ Condolence"}
+{item.type === "Emergency" && "🚨 Emergency"}
                     </span>
                   </div>
 
                   <p className="mt-2 text-sm sm:text-base text-gray-800 leading-relaxed whitespace-pre-wrap font-medium">
                     {item.message}
                   </p>
-
+{item.type === "Event" && (
                   <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1 text-xs font-bold text-gray-400 border-t border-gray-200/50 pt-2">
                     <div className="flex items-center gap-1">
                       <span>📅 Date:</span>
@@ -452,7 +482,7 @@ export default function AdminPage() {
                       <span className="text-gray-600 truncate">{item.venue || "-"}</span>
                     </div>
                   </div>
-
+                  )}
                   <div className="mt-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-gray-200/50 pt-2">
                     <div className="inline-flex items-center gap-1 bg-white/80 border border-gray-200 rounded-md px-2 py-0.5 text-xs font-bold text-gray-500 self-start shadow-xs">
                       <span>👤 Published By :</span>
