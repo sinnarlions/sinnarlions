@@ -7,6 +7,7 @@ import { db } from "../src/firebase/config";
 import AuthGuard from "@/src/components/AuthGuard";
 import { useRouter } from "next/navigation";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+import WeatherCard from "@/src/components/WeatherCard";
 import {
   collection,
   getDocs,
@@ -702,7 +703,11 @@ export default function Home() {
               })
             )}
           </section>
-
+          
+{/* WEATHER */}
+<section className="mt-6">
+  <WeatherCard />
+</section>
           {/* SECTION 3: COMING UP THIS WEEK */}
           <section>
             <h3 className="mb-1.5 text-[10px] font-black tracking-wider text-[#F2A900] uppercase">
