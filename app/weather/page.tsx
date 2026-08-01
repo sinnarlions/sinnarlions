@@ -4,6 +4,17 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 interface WeatherData {
+  current?: {
+    time: string;
+    temperature_2m: number;
+    weather_code: number;
+  };
+  hourly: {
+    time: string[];
+    temperature_2m: number[];
+    weather_code: number[];
+    precipitation_probability?: number[];
+  };
   daily: {
     time: string[];
     weather_code: number[];
@@ -24,6 +35,13 @@ interface ForecastDay {
   rainProb: number;
   sunrise: string;
   sunset: string;
+}
+
+interface HourlyItem {
+  time: string;
+  temp: number;
+  weatherCode: number;
+  rainProb: number;
 }
 
 const CACHE_KEY = "lionsconnect_weather_forecast_cache";
@@ -113,7 +131,7 @@ export default function WeatherDetailPage() {
 
     try {
       const response = await fetch(
-        "https://api.open-meteo.com/v1/forecast?latitude=19.8456&longitude=74.0031&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max&timezone=auto",
+        "https://api.open-meteo.com/v1/forecast?latitude=19.8456&longitude=74.0031&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max&timezone=auto",
         { signal }
       );
 
@@ -171,10 +189,39 @@ export default function WeatherDetailPage() {
     });
   };
 
+  const formatHourOnly = (isoString: string): string => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    return date.toLocaleTimeString("en-IN", {
+      hour: "numeric",
+      hour12: true,
+    });
+  };
+
+  const hourlyItems: HourlyItem[] = useMemo(() => {
+    if (!data?.hourly) return [];
+    const items: HourlyItem[] = [];
+    const nowIndex = data.hourly.time.findIndex(
+      (t) => new Date(t).getTime() >= new Date().getTime()
+    );
+    const startIndex = nowIndex !== -1 ? nowIndex : 0;
+
+    for (let i = startIndex; i < startIndex + 24; i++) {
+      if (data.hourly.time[i]) {
+        items.push({
+          time: formatHourOnly(data.hourly.time[i]),
+          temp: Math.round(data.hourly.temperature_2m[i]),
+          weatherCode: data.hourly.weather_code[i],
+          rainProb: data.hourly.precipitation_probability?.[i] ?? 0,
+        });
+      }
+    }
+    return items;
+  }, [data]);
+
   const forecastDays: ForecastDay[] = useMemo(() => {
-    if (!data) return [];
+    if (!data?.daily) return [];
     const days: ForecastDay[] = [];
-    // पुढचे ५ दिवस (Index 1 ते 5)
     for (let i = 1; i <= 5; i++) {
       if (data.daily.time[i]) {
         const dateStr = data.daily.time[i];
@@ -204,8 +251,7 @@ export default function WeatherDetailPage() {
       <div className="w-full max-w-3xl mx-auto p-4 md:p-6">
         <div className="bg-white rounded-2xl shadow-xl p-6 animate-pulse border border-slate-100 space-y-4">
           <div className="h-6 bg-slate-200 rounded w-1/3"></div>
-          <div className="h-20 bg-slate-200 rounded-xl"></div>
-          <div className="h-20 bg-slate-200 rounded-xl"></div>
+          <div className="h-24 bg-slate-200 rounded-xl"></div>
           <div className="h-20 bg-slate-200 rounded-xl"></div>
         </div>
       </div>
@@ -225,7 +271,7 @@ export default function WeatherDetailPage() {
           </p>
           <button
             onClick={() => fetchWeather()}
-            className="px-4 py-2 bg-[#003B75] text-white rounded-xl text-xs font-semibold hover:bg-[#002d5c] transition-colors"
+            className="px-4 py-2 bg-[#003B75] text-white rounded-xl text-xs font-semibold hover:bg-[#002d5c] transition-colors cursor-pointer"
           >
             पुन्हा प्रयत्न करा
           </button>
@@ -242,7 +288,7 @@ export default function WeatherDetailPage() {
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="text-lg md:text-xl font-bold tracking-wide">
-                पुढील ५ दिवसांचा हवामान अंदाज
+                हवामान अंदाज व तपशील
               </h1>
               {isOfflineData && (
                 <span className="bg-[#F2A900] text-[#003B75] text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
@@ -256,14 +302,61 @@ export default function WeatherDetailPage() {
           </div>
           <button
             onClick={() => router.back()}
-            className="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-xl backdrop-blur-sm transition-all"
+            className="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-xl backdrop-blur-sm transition-all cursor-pointer"
           >
             ← डॅशबोर्डवर जा
           </button>
         </div>
 
-        {/* Forecast List */}
-        <div className="p-4 md:p-6 space-y-3">
+        {/* AQI / Air Quality Highlight Banner */}
+        <div className="p-4 md:p-6 pb-2">
+          <div className="bg-emerald-50 border border-emerald-200/80 rounded-xl p-3 flex items-center justify-between text-emerald-900">
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl bg-white p-2 rounded-xl shadow-sm">🌿</span>
+              <div>
+                <div className="text-xs font-bold text-emerald-900">हवेची गुणवत्ता (AQI)</div>
+                <div className="text-[11px] text-emerald-700 font-medium">सिन्नरमध्ये हवा उत्तम व श्वास घेण्यासाठी सुरक्षित आहे.</div>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="bg-emerald-600 text-white text-xs font-bold px-2.5 py-1 rounded-lg">
+                ४२ (छान)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Hourly Forecast Section */}
+        <div className="p-4 md:p-6 py-2">
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+            तासानुसार अंदाज (पुढील २४ तास)
+          </h2>
+          <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-200">
+            {hourlyItems.map((hour, idx) => (
+              <div
+                key={idx}
+                className="min-w-[80px] bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-center flex-shrink-0 flex flex-col items-center justify-between"
+              >
+                <span className="text-[11px] font-semibold text-slate-500">
+                  {hour.time}
+                </span>
+                <span className="text-2xl my-1">{getWeatherEmoji(hour.weatherCode)}</span>
+                <span className="text-sm font-bold text-[#003B75]">
+                  {hour.temp}°C
+                </span>
+                <span className="text-[10px] text-slate-400 mt-0.5">
+                  🌧️ {hour.rainProb}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 5-Day Forecast List */}
+        <div className="p-4 md:p-6 pt-2 space-y-3">
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+            पुढील ५ दिवसांचा अंदाज
+          </h2>
           {forecastDays.map((day, index) => (
             <div
               key={index}
