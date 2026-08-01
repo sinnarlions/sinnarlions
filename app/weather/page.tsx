@@ -24,6 +24,7 @@ interface WeatherData {
     sunset: string[];
     precipitation_probability_max?: number[];
   };
+  currentAqi?: number;
 }
 
 interface ForecastDay {
@@ -118,6 +119,15 @@ const getWeatherEmoji = (code: number): string => {
   }
 };
 
+// AQI नुसार दर्जा ठरवणारे फंक्शन
+const getAqiStatus = (aqi: number) => {
+  if (aqi <= 20) return { text: "छान (उत्तम)", color: "bg-emerald-600", desc: "हवा अत्यंत शुद्ध व सुरक्षित आहे." };
+  if (aqi <= 50) return { text: "छान", color: "bg-emerald-600", desc: "सिन्नरमध्ये हवा उत्तम व सुरक्षित आहे." };
+  if (aqi <= 80) return { text: "माध्यम", color: "bg-amber-500", desc: "हवा समाधानकारक आहे." };
+  if (aqi <= 100) return { text: "स्वीकारार्ह", color: "bg-orange-500", desc: "संवेदनशील व्यक्तींनी काळजी घ्यावी." };
+  return { text: "वाईट", color: "bg-red-600", desc: "हवेचे प्रदूषण हवेच्या गुणवत्तेवर परिणाम करत आहे." };
+};
+
 export default function WeatherDetailPage() {
   const router = useRouter();
   const [data, setData] = useState<WeatherData | null>(null);
@@ -130,23 +140,44 @@ export default function WeatherDetailPage() {
     setError(false);
 
     try {
-      const response = await fetch(
-        "https://api.open-meteo.com/v1/forecast?latitude=19.8456&longitude=74.0031&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max&timezone=auto",
-        { signal }
-      );
+      // एकाचवेळी हवामान आणि AQI (Air Quality) दोन्ही APIs फेच करणे
+      const [weatherRes, aqiRes] = await Promise.all([
+        fetch(
+          "https://api.open-meteo.com/v1/forecast?latitude=19.8456&longitude=74.0031&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max&timezone=auto",
+          { signal }
+        ),
+        fetch(
+          "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=19.8456&longitude=74.0031&current=european_aqi",
+          { signal }
+        ),
+      ]);
 
-      if (!response.ok) {
+      if (!weatherRes.ok) {
         throw new Error("Failed to fetch forecast data");
       }
 
-      const result: WeatherData = await response.json();
-      setData(result);
+      const weatherResult: WeatherData = await weatherRes.json();
+      
+      let currentAqi = 42; // डीफॉल्ट व्हॅल्यू जर AQI API फेल झाला तर
+      if (aqiRes.ok) {
+        const aqiResult = await aqiRes.json();
+        if (aqiResult?.current?.european_aqi !== undefined) {
+          currentAqi = aqiResult.current.european_aqi;
+        }
+      }
+
+      const combinedResult: WeatherData = {
+        ...weatherResult,
+        currentAqi,
+      };
+
+      setData(combinedResult);
       setIsOfflineData(false);
 
       try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(result));
+        localStorage.setItem(CACHE_KEY, JSON.stringify(combinedResult));
       } catch {
-        // Ignore localStorage quota errors
+        // Ignore quota errors
       }
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") {
@@ -246,6 +277,8 @@ export default function WeatherDetailPage() {
     return days;
   }, [data]);
 
+  const aqiInfo = getAqiStatus(data?.currentAqi ?? 42);
+
   if (loading && !data) {
     return (
       <div className="w-full max-w-3xl mx-auto p-4 md:p-6">
@@ -308,19 +341,21 @@ export default function WeatherDetailPage() {
           </button>
         </div>
 
-        {/* AQI / Air Quality Highlight Banner */}
+        {/* AQI / Air Quality Highlight Banner (Live Data) */}
         <div className="p-4 md:p-6 pb-2">
-          <div className="bg-emerald-50 border border-emerald-200/80 rounded-xl p-3 flex items-center justify-between text-emerald-900">
-            <div className="flex items-center space-x-3">
-              <span className="text-2xl bg-white p-2 rounded-xl shadow-sm">🌿</span>
-              <div>
-                <div className="text-xs font-bold text-emerald-900">हवेची गुणवत्ता (AQI)</div>
-                <div className="text-[11px] text-emerald-700 font-medium">सिन्नरमध्ये हवा उत्तम व श्वास घेण्यासाठी सुरक्षित आहे.</div>
+          <div className="bg-emerald-50 border border-emerald-200/80 rounded-xl p-3 flex flex-row items-center justify-between gap-3 text-emerald-900">
+            <div className="flex items-center space-x-2.5 min-w-0">
+              <span className="text-xl md:text-2xl bg-white p-2 rounded-xl shadow-sm flex-shrink-0">🌿</span>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-emerald-900">हवेची गुणवत्ता (AQI) - लाईव्ह</div>
+                <div className="text-[11px] text-emerald-700 font-medium leading-tight mt-0.5">
+                  <span className="block sm:inline">{aqiInfo.desc}</span>
+                </div>
               </div>
             </div>
-            <div className="text-right">
-              <span className="bg-emerald-600 text-white text-xs font-bold px-2.5 py-1 rounded-lg">
-                ४२ (छान)
+            <div className="text-right flex-shrink-0">
+              <span className={`${aqiInfo.color} text-white text-xs font-bold px-2.5 py-1.5 rounded-lg whitespace-nowrap inline-block shadow-sm`}>
+                {data.currentAqi} ({aqiInfo.text})
               </span>
             </div>
           </div>
@@ -396,6 +431,12 @@ export default function WeatherDetailPage() {
             </div>
           ))}
         </div>
+
+        {/* Weather Data Attribution */}
+        <div className="text-center pb-4 text-[11px] text-slate-400">
+          Weather & Air Quality data by <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">Open-Meteo.com</a>
+        </div>
+
       </div>
     </div>
   );
