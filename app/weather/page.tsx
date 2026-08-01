@@ -119,13 +119,12 @@ const getWeatherEmoji = (code: number): string => {
   }
 };
 
-// AQI नुसार दर्जा ठरवणारे फंक्शन
 const getAqiStatus = (aqi: number) => {
-  if (aqi <= 20) return { text: "छान (उत्तम)", color: "bg-emerald-600", desc: "हवा अत्यंत शुद्ध व सुरक्षित आहे." };
-  if (aqi <= 50) return { text: "छान", color: "bg-emerald-600", desc: "सिन्नरमध्ये हवा उत्तम व सुरक्षित आहे." };
-  if (aqi <= 80) return { text: "माध्यम", color: "bg-amber-500", desc: "हवा समाधानकारक आहे." };
-  if (aqi <= 100) return { text: "स्वीकारार्ह", color: "bg-orange-500", desc: "संवेदनशील व्यक्तींनी काळजी घ्यावी." };
-  return { text: "वाईट", color: "bg-red-600", desc: "हवेचे प्रदूषण हवेच्या गुणवत्तेवर परिणाम करत आहे." };
+  if (aqi <= 20) return { text: "उत्तम", color: "bg-emerald-600", desc: "अत्यंत शुद्ध हवा" };
+  if (aqi <= 50) return { text: "छान", color: "bg-emerald-600", desc: "हवा उत्तम व सुरक्षित" };
+  if (aqi <= 80) return { text: "माध्यम", color: "bg-amber-500", desc: "समाधानकारक हवा" };
+  if (aqi <= 100) return { text: "स्वीकारार्ह", color: "bg-orange-500", desc: "काळजी घ्या" };
+  return { text: "वाईट", color: "bg-red-600", desc: "प्रदूषण जास्त आहे" };
 };
 
 export default function WeatherDetailPage() {
@@ -140,7 +139,6 @@ export default function WeatherDetailPage() {
     setError(false);
 
     try {
-      // एकाचवेळी हवामान आणि AQI (Air Quality) दोन्ही APIs फेच करणे
       const [weatherRes, aqiRes] = await Promise.all([
         fetch(
           "https://api.open-meteo.com/v1/forecast?latitude=19.8456&longitude=74.0031&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max&timezone=auto",
@@ -158,7 +156,7 @@ export default function WeatherDetailPage() {
 
       const weatherResult: WeatherData = await weatherRes.json();
       
-      let currentAqi = 42; // डीफॉल्ट व्हॅल्यू जर AQI API फेल झाला तर
+      let currentAqi = 42;
       if (aqiRes.ok) {
         const aqiResult = await aqiRes.json();
         if (aqiResult?.current?.european_aqi !== undefined) {
@@ -281,7 +279,7 @@ export default function WeatherDetailPage() {
 
   if (loading && !data) {
     return (
-      <div className="w-full max-w-3xl mx-auto p-4 md:p-6">
+      <div className="w-full max-w-3xl mx-auto p-2 md:p-6">
         <div className="bg-white rounded-2xl shadow-xl p-6 animate-pulse border border-slate-100 space-y-4">
           <div className="h-6 bg-slate-200 rounded w-1/3"></div>
           <div className="h-24 bg-slate-200 rounded-xl"></div>
@@ -293,7 +291,7 @@ export default function WeatherDetailPage() {
 
   if (error || !data) {
     return (
-      <div className="w-full max-w-3xl mx-auto p-4 md:p-6 text-center">
+      <div className="w-full max-w-3xl mx-auto p-2 md:p-6 text-center">
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
           <div className="text-4xl mb-3">⚠️</div>
           <h3 className="text-lg font-bold text-red-600 mb-1">
@@ -314,18 +312,18 @@ export default function WeatherDetailPage() {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto p-4 md:p-6 text-slate-800">
+    <div className="w-full max-w-3xl mx-auto px-2 py-3 md:p-6 text-slate-800">
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
         {/* Header */}
-        <div className="bg-gradient-to-br from-[#003B75] to-[#002850] px-5 py-4 text-white flex justify-between items-center">
+        <div className="bg-gradient-to-br from-[#003B75] to-[#002850] px-4 md:px-5 py-4 text-white flex justify-between items-center">
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-lg md:text-xl font-bold tracking-wide">
+              <h1 className="text-base md:text-xl font-bold tracking-wide">
                 हवामान अंदाज व तपशील
               </h1>
               {isOfflineData && (
                 <span className="bg-[#F2A900] text-[#003B75] text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                  ऑफलाइन डेटा
+                  ऑफलाइन
                 </span>
               )}
             </div>
@@ -335,34 +333,39 @@ export default function WeatherDetailPage() {
           </div>
           <button
             onClick={() => router.back()}
-            className="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-xl backdrop-blur-sm transition-all cursor-pointer"
+            className="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl backdrop-blur-sm transition-all cursor-pointer flex-shrink-0"
           >
-            ← डॅशबोर्डवर जा
+            ← डॅशबोर्ड
           </button>
         </div>
 
-        {/* AQI / Air Quality Highlight Banner (Live Data) */}
-        <div className="p-4 md:p-6 pb-2">
-          <div className="bg-emerald-50 border border-emerald-200/80 rounded-xl p-3 flex flex-row items-center justify-between gap-3 text-emerald-900">
+       {/* AQI / Air Quality Highlight Banner (Compact & Clean) */}
+        <div className="p-3 md:p-6 pb-2">
+          <div className="bg-emerald-50 border border-emerald-200/80 rounded-xl p-3 flex items-center justify-between gap-2 text-emerald-900">
             <div className="flex items-center space-x-2.5 min-w-0">
-              <span className="text-xl md:text-2xl bg-white p-2 rounded-xl shadow-sm flex-shrink-0">🌿</span>
+              <span className="text-xl bg-white p-2 rounded-xl shadow-sm flex-shrink-0">🌿</span>
               <div className="min-w-0">
-                <div className="text-xs font-bold text-emerald-900">हवेची गुणवत्ता (AQI) - लाईव्ह</div>
-                <div className="text-[11px] text-emerald-700 font-medium leading-tight mt-0.5">
-                  <span className="block sm:inline">{aqiInfo.desc}</span>
+                <div className="text-xs font-bold text-emerald-900 truncate">
+                  हवेची गुणवत्ता (AQI)
+                </div>
+                <div className="text-[11px] text-emerald-700 font-medium truncate mt-0.5">
+                  {aqiInfo.desc}
                 </div>
               </div>
             </div>
             <div className="text-right flex-shrink-0">
-              <span className={`${aqiInfo.color} text-white text-xs font-bold px-2.5 py-1.5 rounded-lg whitespace-nowrap inline-block shadow-sm`}>
-                {data.currentAqi} ({aqiInfo.text})
+              <span className="text-emerald-700 font-extrabold text-lg md:text-xl px-2 py-1 inline-block leading-none">
+                {data.currentAqi}
               </span>
+              <div className="text-[9px] text-emerald-600 font-bold uppercase tracking-wider">
+                {aqiInfo.text}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Hourly Forecast Section */}
-        <div className="p-4 md:p-6 py-2">
+        <div className="p-3 md:p-6 py-2">
           <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
             तासानुसार अंदाज (पुढील २४ तास)
           </h2>
@@ -388,17 +391,17 @@ export default function WeatherDetailPage() {
         </div>
 
         {/* 5-Day Forecast List */}
-        <div className="p-4 md:p-6 pt-2 space-y-3">
+        <div className="p-3 md:p-6 pt-2 space-y-3">
           <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
             पुढील ५ दिवसांचा अंदाज
           </h2>
           {forecastDays.map((day, index) => (
             <div
               key={index}
-              className="bg-slate-50 hover:bg-slate-100/80 transition-colors border border-slate-100 rounded-xl p-3.5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3"
+              className="bg-slate-50 hover:bg-slate-100/80 transition-colors border border-slate-100 rounded-xl p-3 flex flex-col md:flex-row items-start md:items-center justify-between gap-3"
             >
               <div className="flex items-center space-x-3">
-                <span className="text-3xl bg-white p-2 rounded-xl shadow-sm border border-slate-100">
+                <span className="text-2xl md:text-3xl bg-white p-2 rounded-xl shadow-sm border border-slate-100">
                   {getWeatherEmoji(day.weatherCode)}
                 </span>
                 <div>
@@ -408,7 +411,7 @@ export default function WeatherDetailPage() {
                   <div className="text-xs font-medium text-slate-600 mt-0.5">
                     {getMarathiWeatherDescription(day.weatherCode)}
                   </div>
-                  <div className="text-[11px] text-slate-500 mt-1 flex items-center space-x-2">
+                  <div className="text-[11px] text-slate-500 mt-0.5 flex items-center space-x-2">
                     <span>🌧️ पाऊस: {day.rainProb}%</span>
                   </div>
                 </div>
@@ -433,7 +436,7 @@ export default function WeatherDetailPage() {
         </div>
 
         {/* Weather Data Attribution */}
-        <div className="text-center pb-4 text-[11px] text-slate-400">
+        <div className="text-center pb-4 pt-2 text-[11px] text-slate-400">
           Weather & Air Quality data by <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">Open-Meteo.com</a>
         </div>
 
